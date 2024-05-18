@@ -4,7 +4,7 @@ services:
     container_name: quiz-question-service
     build:
       context: .
-      dockerfile: dockerfile
+      dockerfile: Dockerfile
     mem_limit: 2000mb
     cpus: 2
     ports:

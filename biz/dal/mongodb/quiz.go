@@ -17,6 +17,24 @@ func NewQuizRepository(db *mongo.Database) *QuizRepository {
 	return &QuizRepository{db: db}
 }
 
+func (r *QuizRepository) InsertQuizData(ctx context.Context, quizReqs []domain.BaseQuiz) error {
+	coll := r.db.Collection("base_quiz")
+
+	var quizs []interface{}
+	for _, req := range quizReqs {
+		quizs = append(quizs, req)
+	}
+	
+	_, err := coll.InsertMany(ctx, quizs)
+
+
+	if err != nil {
+		zap.L().Error("coll.InsertMany (InsertQuizData) (QuizRepository)", zap.Error(err ))
+		return err
+	}
+	return nil 
+}
+
 func (r *QuizRepository) GetAll(ctx context.Context) ([]domain.BaseQuiz, error) {
 	filter := bson.D{{"users_answers", 0}}
 	coll := r.db.Collection("base_quiz")
@@ -33,4 +51,31 @@ func (r *QuizRepository) GetAll(ctx context.Context) ([]domain.BaseQuiz, error) 
 	}
 
 	return quizs, nil
+}
+
+func (r *QuizRepository) IsUserQuizParticipant(ctx context.Context, quizID string, userID string) error {
+	filter := bson.D{
+		{"$unwind", bson.D{
+			{"path", "$participants"},
+		}},
+		{"$match", bson.D{
+			{"$participants._id", userID},
+		}},
+	}
+
+	coll := r.db.Collection("quiz")
+
+	cursor, err := coll.Aggregate(ctx, mongo.Pipeline{filter})
+	if err != nil {
+		zap.L().Error("coll.Aggregat (IsUserQuizParticipant) (QuizRepository)", zap.Error(err))
+		return err
+	}
+
+	var participant domain.BaseQuiz
+	if err := cursor.All(ctx, &participant); err != nil {
+		zap.L().Error("cursor.ALl()(IsUserQuizParticipant) (QuizRepository) ", zap.Error(err))
+		return err
+	}
+
+	return nil
 }

@@ -13,6 +13,10 @@ import (
 	"github.com/cloudwego/hertz/pkg/route"
 	"github.com/cloudwego/kitex/pkg/transmeta"
 	"github.com/hertz-contrib/pprof"
+	"ququiz.org/lintang/quiz-query-service/biz/dal/mongodb"
+	rediscache "ququiz.org/lintang/quiz-query-service/biz/dal/mongodb/redisCache"
+	"ququiz.org/lintang/quiz-query-service/biz/router"
+	"ququiz.org/lintang/quiz-query-service/biz/service"
 	"ququiz.org/lintang/quiz-query-service/config"
 	"ququiz.org/lintang/quiz-query-service/kitex_gen/go_hertz_template_lintang/pb/helloservice"
 	"ququiz.org/lintang/quiz-query-service/pkg"
@@ -40,20 +44,23 @@ func main() {
 	var callback []route.CtxCallback
 
 	// service & router
-	// mongo := mongodb.NewMongo(cfg)
-	// rds := rediscache.NewRedis(cfg)
+	mongo := mongodb.NewMongo(cfg)
+	rds := rediscache.NewRedis(cfg)
 
-	// // repository
-	// quizRepo := mongodb.NewQuizRepository(mongo.Conn)
-	// questionRepo := mongodb.NewQuestionRepository(mongo.Conn)
+	// repository
+	quizRepo := mongodb.NewQuizRepository(mongo.Conn)
+	questionRepo := mongodb.NewQuestionRepository(mongo.Conn)
 
-	// cacheRepo := rediscache.NewRedisCache(rds.Client)
+	cacheRepo := rediscache.NewRedisCache(rds.Client)
 
-	// // service
-	// questionService := service.NewQuestionService(questionRepo, cacheRepo)
-	// quizService := service.NewQuizService(quizRepo)
+	// service
+	questionService := service.NewQuestionService(questionRepo, cacheRepo)
+	quizService := service.NewQuizService(quizRepo)
 
-	// callback = append(callback, mongo.Close, rds.Close)
+	// router 
+	router.QuizRouter(h, quizService, questionService)
+
+	callback = append(callback, mongo.Close, rds.Close)
 	h.Engine.OnShutdown = append(h.Engine.OnShutdown, callback...) /// graceful shutdown
 
 	addr, _ := net.ResolveTCPAddr("tcp", fmt.Sprintf(`127.0.0.1:%s`, cfg.GRPC.URLGrpc)) // grpc address

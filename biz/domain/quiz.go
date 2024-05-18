@@ -22,6 +22,7 @@ var GetQuizStatus = map[string]QuizStatus{
 
 type BaseQuiz struct {
 	ID           primitive.ObjectID   `bson:"_id" json:"id"`
+	Name         string               `json:"name" bson:"name"`
 	CreatorID    string               `json:"creator_id" bson:"creator_id"`
 	Passcode     string               `json:"passcode" bson:"passcode"`
 	StartTime    time.Time            `json:"start_time" bson:"start_time"`
@@ -31,6 +32,12 @@ type BaseQuiz struct {
 	Status       QuizStatus           `json:"quiz_status" bson:"quiz_status"`
 }
 
+type Participant struct {
+	ID primitive.ObjectID `bson:"_id" json:"id"`
+	UserID string `json:"user_id" bson:"user_id"`
+	FinalScore int64 `json:"final_score" bson:"final_score"`
+	Status QuizStatus `json:"status" bson:"status"`
+}
 type QuestionType string
 
 const (
@@ -58,6 +65,7 @@ type Question struct {
 	Weight      int32              `json:"weight" bson:"weight"`
 	UserAnswers []UserAnswer       `json:"user_answers" bson:"user_answers"`
 }
+
 
 // hasil aggregate get user answer
 type QuestionWithUserAnswerAggregate struct {

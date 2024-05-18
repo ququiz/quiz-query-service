@@ -49,13 +49,15 @@ func (r *QuestionRepository) GetUserAnswerInAQuiz(ctx context.Context, quizID st
 	coll := r.db.Collection("quiz")
 	userAnswerFilter := bson.D{
 		{"id", quizID},
-		{"$unwind", "$user_answers"},
+		{"$unwind", bson.D{
+			{"path", "$user_answers"},
+		}},
 		{"$match", bson.D{
 			{"$user_answers.participant_id", userID},
 		}},
 	}
 	/*
-		{question ... , }
+		{question ... , participant_id: objectID(....) }
 	*/
 
 	cursor, err := coll.Aggregate(ctx, mongo.Pipeline{userAnswerFilter})
@@ -70,6 +72,6 @@ func (r *QuestionRepository) GetUserAnswerInAQuiz(ctx context.Context, quizID st
 		return []domain.QuestionWithUserAnswerAggregate{}, err
 	}
 
-	return questionsWithUserAnswer, nil 
+	return questionsWithUserAnswer, nil
 
 }
