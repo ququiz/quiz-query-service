@@ -67,6 +67,8 @@ type Question struct {
 }
 
 
+// -----------------------------------------------
+// yang dibawah bukan disimpen di mongodb
 // hasil aggregate get user answer
 type QuestionWithUserAnswerAggregate struct {
 	ID         primitive.ObjectID `bson:"_id" json:"id"`

@@ -17,9 +17,11 @@ import (
 	rediscache "ququiz.org/lintang/quiz-query-service/biz/dal/mongodb/redisCache"
 	"ququiz.org/lintang/quiz-query-service/biz/router"
 	"ququiz.org/lintang/quiz-query-service/biz/service"
+	"ququiz.org/lintang/quiz-query-service/biz/util"
 	"ququiz.org/lintang/quiz-query-service/config"
 	"ququiz.org/lintang/quiz-query-service/kitex_gen/go_hertz_template_lintang/pb/helloservice"
 	"ququiz.org/lintang/quiz-query-service/pkg"
+	"ququiz.org/lintang/quiz-query-service/rpc"
 
 	kitexServer "github.com/cloudwego/kitex/server"
 )
@@ -59,6 +61,9 @@ func main() {
 
 	// router 
 	router.QuizRouter(h, quizService, questionService)
+	
+	// insert data to mongodb pake faker
+	util.InsertQuizData(cfg, mongo)
 
 	callback = append(callback, mongo.Close, rds.Close)
 	h.Engine.OnShutdown = append(h.Engine.OnShutdown, callback...) /// graceful shutdown
@@ -67,7 +72,8 @@ func main() {
 	var opts []kitexServer.Option
 	opts = append(opts, kitexServer.WithMetaHandler(transmeta.ServerHTTP2Handler))
 	opts = append(opts, kitexServer.WithServiceAddr(addr))
-	srv := helloservice.NewServer(new(HelloServiceImpl), opts...) //grpc server
+	
+	srv := helloservice.NewServer(new(rpc.HelloServiceImpl), opts...) //grpc server
 
 	go func() {
 		// start kitex rpc server (grpc)
