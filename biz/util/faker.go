@@ -127,7 +127,7 @@ func InsertQuizData(cfg *config.Config, mongo *mongodb.Mongodb) {
 
 	first = 0
 	for i := 0; i < 200; i++ {
-		var thisQuizParticipant = make([]primitive.ObjectID, 20)
+		var thisQuizParticipant []primitive.ObjectID
 		var thisQuizQuestions = make([]primitive.ObjectID, 20)
 
 		if i < 150 {
@@ -156,7 +156,7 @@ func InsertQuizData(cfg *config.Config, mongo *mongodb.Mongodb) {
 		first += 20
 
 		// insert quizs[i] ke mongodb
-		_, err := mongo.Conn.Collection("quiz").InsertOne(context.Background(), quiz)
+		_, err := mongo.Conn.Collection("base_quiz").InsertOne(context.Background(), quiz)
 		if err != nil {
 			zap.L().Error("mongo.Conn.Collection(quiz).InsertOne (InsertQuizData)", zap.Error(err))
 		}

@@ -24,32 +24,32 @@ func (r *QuizRepository) InsertQuizData(ctx context.Context, quizReqs []domain.B
 	for _, req := range quizReqs {
 		quizs = append(quizs, req)
 	}
-	
+
 	_, err := coll.InsertMany(ctx, quizs)
 
-
 	if err != nil {
-		zap.L().Error("coll.InsertMany (InsertQuizData) (QuizRepository)", zap.Error(err ))
+		zap.L().Error("coll.InsertMany (InsertQuizData) (QuizRepository)", zap.Error(err))
 		return err
 	}
-	return nil 
+	return nil
 }
 
 func (r *QuizRepository) GetAll(ctx context.Context) ([]domain.BaseQuiz, error) {
-	filter := bson.D{{"users_answers", 0}}
 	coll := r.db.Collection("base_quiz")
-	cursor, err := coll.Find(ctx, filter)
+	cursor, err := coll.Find(ctx, bson.D{})
 	if err != nil {
 		zap.L().Error("coll.Find() (GetALlQuiz) (QuizRepoistory)", zap.Error(err))
 		return []domain.BaseQuiz{}, err
 	}
 
 	var quizs []domain.BaseQuiz
+	
+	// bawah gakbisa
 	if err := cursor.All(ctx, &quizs); err != nil {
-		zap.L().Error("cursor.All()", zap.Error(err))
-		return []domain.BaseQuiz{}, err
+	zap.L().Error("cursor.All()", zap.Error(err))
+	return []domain.BaseQuiz{}, err
 	}
-
+	
 	return quizs, nil
 }
 

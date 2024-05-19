@@ -27,6 +27,5 @@ services:
     hostname: redis
     restart: always
     ports:
-      - 6378:6379
-    command: >
-      --requirepass passwordRedis
+      - 6379:6379
+  

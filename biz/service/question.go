@@ -2,12 +2,14 @@ package service
 
 import (
 	"context"
+	"fmt"
 
+	"go.uber.org/zap"
 	"ququiz.org/lintang/quiz-query-service/biz/domain"
 )
 
 type QuestionRepository interface {
-	GetAllByQuiz(ctx context.Context, quizID string) ([]domain.Question, error)
+	GetAllByQuiz(ctx context.Context, quizID string) ([]domain.BaseQuizWithQuestionAggregate, error)
 	GetUserAnswerInAQuiz(ctx context.Context, quizID string, userID string) ([]domain.QuestionWithUserAnswerAggregate, error)
 }
 
@@ -19,7 +21,7 @@ type CachedQsRepo interface {
 type QuestionService struct {
 	questionRepo QuestionRepository
 	cachedQsRepo CachedQsRepo
-	QuizRepo QuizRepository
+	QuizRepo     QuizRepository
 }
 
 func NewQuestionService(questionRepo QuestionRepository, cachedQsRepo CachedQsRepo) *QuestionService {
@@ -27,25 +29,30 @@ func NewQuestionService(questionRepo QuestionRepository, cachedQsRepo CachedQsRe
 }
 
 func (s *QuestionService) GetAllByQuiz(ctx context.Context, quizID string, userID string) ([]domain.Question, error) {
-	err := s.QuizRepo.IsUserQuizParticipant(ctx, quizID, userID)
-	if err != nil {
-		return []domain.Question{}, domain.WrapErrorf(err, domain.ErrUnauthorized,  "you are not authorized")
-	}
+	// err := s.QuizRepo.IsUserQuizParticipant(ctx, quizID, userID)
+	// if err != nil {
+	// 	return []domain.Question{}, domain.WrapErrorf(err, domain.ErrUnauthorized,  "you are not authorized")
+	// }
 
 	var questions []domain.Question
-	questions, err = s.cachedQsRepo.GetCachedQuestion(ctx, quizID)
+	questions, err := s.cachedQsRepo.GetCachedQuestion(ctx, quizID)
 	if err != nil {
 		// get from database
-		questions, err = s.questionRepo.GetAllByQuiz(ctx, quizID)
+		quizs, err := s.questionRepo.GetAllByQuiz(ctx, quizID)
 		if err != nil {
 			return []domain.Question{}, err
 		}
 
+		for _, quiz := range quizs {
+			questions = append(questions, quiz.Questions...)
+		}
 		// set to redis
-		err := s.cachedQsRepo.SetCachedQuestion(ctx, quizID, questions)
+		err = s.cachedQsRepo.SetCachedQuestion(ctx, quizID, questions)
 		if err != nil {
 			return []domain.Question{}, err
 		}
+	} else {
+		zap.L().Debug(fmt.Sprintf("questions utk quiz %s ada di cache", quizID))
 	}
 
 	for i, _ := range questions {
@@ -61,8 +68,8 @@ func (s *QuestionService) GetUserAnswers(ctx context.Context, quizID string, use
 
 	userAnswers, err := s.questionRepo.GetUserAnswerInAQuiz(ctx, quizID, userID)
 	if err != nil {
-		return []domain.QuestionWithUserAnswerAggregate{}, err 
+		return []domain.QuestionWithUserAnswerAggregate{}, err
 	}
 
-	return userAnswers, nil 
+	return userAnswers, nil
 }

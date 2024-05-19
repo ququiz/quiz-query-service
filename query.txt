@@ -1,0 +1,14 @@
+db.base_quiz.aggregate([
+  
+    {
+    $lookup: {
+        from: "question",
+        localField: "questions",
+        foreignField: "_id",
+        as: "questions"
+    },
+  },
+    {
+        $project: { "questions.user_answers": 0}
+    }
+  ])

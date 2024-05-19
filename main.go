@@ -59,9 +59,9 @@ func main() {
 	questionService := service.NewQuestionService(questionRepo, cacheRepo)
 	quizService := service.NewQuizService(quizRepo)
 
-	// router 
+	// router
 	router.QuizRouter(h, quizService, questionService)
-	
+
 	// insert data to mongodb pake faker
 	util.InsertQuizData(cfg, mongo)
 
@@ -72,7 +72,7 @@ func main() {
 	var opts []kitexServer.Option
 	opts = append(opts, kitexServer.WithMetaHandler(transmeta.ServerHTTP2Handler))
 	opts = append(opts, kitexServer.WithServiceAddr(addr))
-	
+
 	srv := helloservice.NewServer(new(rpc.HelloServiceImpl), opts...) //grpc server
 
 	go func() {

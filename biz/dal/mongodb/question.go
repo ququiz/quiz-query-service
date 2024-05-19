@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
 	"ququiz.org/lintang/quiz-query-service/biz/domain"
@@ -17,10 +18,17 @@ func NewQuestionRepository(db *mongo.Database) *QuestionRepository {
 	return &QuestionRepository{db}
 }
 
-func (r *QuestionRepository) GetAllByQuiz(ctx context.Context, quizID string) ([]domain.Question, error) {
-	coll := r.db.Collection("quiz")
+func (r *QuestionRepository) GetAllByQuiz(ctx context.Context, quizID string) ([]domain.BaseQuizWithQuestionAggregate, error) {
+	coll := r.db.Collection("base_quiz")
+	quizIDObjectID, err := primitive.ObjectIDFromHex(quizID)
+
+	match := bson.D{
+		{"$match", bson.D{
+			{"_id", quizIDObjectID},
+		}},
+	}
 	lookup := bson.D{
-		{"id", quizID},
+
 		{"$lookup", bson.D{
 			{"from", "question"},
 			{"localField", "questions"},
@@ -28,17 +36,22 @@ func (r *QuestionRepository) GetAllByQuiz(ctx context.Context, quizID string) ([
 			{"as", "questions"},
 		}},
 	}
-
-	cursor, err := coll.Aggregate(ctx, mongo.Pipeline{lookup})
-	if err != nil {
-		zap.L().Error("coll.Aggregrate (GetAllByQuiz) (QuestionRepository)", zap.Error(err))
-		return []domain.Question{}, err
+	project := bson.D{
+		{"$project", bson.D{
+			{"questions.user_answers", 0},
+		}},
 	}
 
-	var questions []domain.Question
+	cursor, err := coll.Aggregate(ctx, mongo.Pipeline{match, lookup, project})
+	if err != nil {
+		zap.L().Error("coll.Aggregrate (GetAllByQuiz) (QuestionRepository)", zap.Error(err))
+		return []domain.BaseQuizWithQuestionAggregate{}, err
+	}
+
+	var questions []domain.BaseQuizWithQuestionAggregate
 	if err := cursor.All(ctx, &questions); err != nil {
 		zap.L().Error("cursor.All() (GetAllByQuiz) (QuestionRepository)", zap.Error(err))
-		return []domain.Question{}, err
+		return []domain.BaseQuizWithQuestionAggregate{}, err
 	}
 
 	return questions, nil

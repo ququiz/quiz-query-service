@@ -8,8 +8,8 @@ import (
 
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/cloudwego/hertz/pkg/app/server"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"ququiz.org/lintang/quiz-query-service/biz/domain"
-	"ququiz.org/lintang/quiz-query-service/biz/router/middleware"
 )
 
 type QuizService interface {
@@ -37,7 +37,7 @@ func QuizRouter(r *server.Hertz, q QuizService, questionSvc QuestionService) {
 		qH := root.Group("/quiz")
 		{
 			qH.GET("/", handler.GetAllQuiz)
-			qH.GET("/quiz/questions", append(middleware.Protected(), handler.GetQuizQuestion)...)
+			qH.GET("/questions", handler.GetQuizQuestion) //append(middleware.Protected(),
 		}
 	}
 }
@@ -48,13 +48,14 @@ type ResponseError struct {
 }
 
 type listQuizResp struct {
-	ID        string            `json:"id"`
-	Name      string            `json:"name"`
-	CreatorID string            `json:"creator_id"`
-	Passcode  string            `json:"passcode"`
-	StartTime time.Time         `json:"start_time"`
-	EndTime   time.Time         `json:"end_time"`
-	Status    domain.QuizStatus `json:"status"`
+	ID          primitive.ObjectID   `json:"id"`
+	Name        string               `json:"name"`
+	CreatorID   string               `json:"creator_id"`
+	Passcode    string               `json:"passcode"`
+	StartTime   time.Time            `json:"start_time"`
+	EndTime     time.Time            `json:"end_time"`
+	Status      domain.QuizStatus    `json:"status"`
+	Participant []primitive.ObjectID `json:"participants"`
 }
 
 func (h *QuizHandler) GetAllQuiz(ctx context.Context, c *app.RequestContext) {
@@ -68,20 +69,21 @@ func (h *QuizHandler) GetAllQuiz(ctx context.Context, c *app.RequestContext) {
 	var resp []listQuizResp
 	for _, quiz := range quizs {
 		resp = append(resp, listQuizResp{
-			ID:        quiz.ID.String(),
-			Name:      quiz.Name,
-			CreatorID: quiz.CreatorID,
-			Passcode:  quiz.Passcode,
-			StartTime: quiz.StartTime,
-			EndTime:   quiz.EndTime,
-			Status:    quiz.Status,
+			ID:          quiz.ID,
+			Name:        quiz.Name,
+			CreatorID:   quiz.CreatorID,
+			Passcode:    quiz.Passcode,
+			StartTime:   quiz.StartTime,
+			EndTime:     quiz.EndTime,
+			Status:      quiz.Status,
+			Participant: quiz.Participants,
 		})
 	}
 	c.JSON(http.StatusOK, resp)
 }
 
 type getQuestionReq struct {
-	QuizID string `query:"quizID,required" vd:"regexp('\\w);  msg:'quizID haruslah a-z,A-Z,0-9'"`
+	QuizID string `query:"quizID,required" vd:"regexp('\\w');  msg:'quizID haruslah a-z,A-Z,0-9'"`
 }
 
 type getQuestionRes struct {
@@ -99,8 +101,8 @@ func (h *QuizHandler) GetQuizQuestion(ctx context.Context, c *app.RequestContext
 		c.JSON(http.StatusBadRequest, ResponseError{Message: err.Error()})
 		return
 	}
-	userID, _ := c.Get("userID")
-	questions, err := h.questionSvc.GetAllByQuiz(ctx, req.QuizID, userID.(string))
+	// userID, _ := c.Get("userID")
+	questions, err := h.questionSvc.GetAllByQuiz(ctx, req.QuizID, "tes-user")
 	if err != nil {
 		c.JSON(getStatusCode(err), ResponseError{Message: err.Error()})
 		return
@@ -109,7 +111,7 @@ func (h *QuizHandler) GetQuizQuestion(ctx context.Context, c *app.RequestContext
 	var questionsRes []getQuestionRes
 	for _, q := range questions {
 		questionsRes = append(questionsRes, getQuestionRes{
-			ID:       q.ID.String(),
+			ID:       q.ID.Hex(),
 			Question: q.Question,
 			Type:     string(q.Type),
 			Choices:  q.Choices,
@@ -157,8 +159,6 @@ func (h *QuizHandler) GetUserAnswer(ctx context.Context, c *app.RequestContext) 
 
 	c.JSON(http.StatusOK, userAnswerRes{res})
 }
-
-
 
 func getStatusCode(err error) int {
 	if err == nil {
