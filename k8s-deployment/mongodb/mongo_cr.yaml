@@ -2,7 +2,7 @@
 apiVersion: mongodbcommunity.mongodb.com/v1
 kind: MongoDBCommunity
 metadata:
-  name: example-mongodb
+  name: ququiz-mongodb
 spec:
   members: 3
   type: ReplicaSet

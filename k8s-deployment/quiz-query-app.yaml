@@ -1,0 +1,55 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lintang-quiz-query-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: lintang-quiz-query-service
+  template:
+    metadata:
+      labels:
+        app: lintang-quiz-query-service
+    spec:
+      containers:
+      - name: lintang-quiz-query-service
+        image: docker.io/lintangbirdas/quiz-query-service:v1
+        imagePullPolicy: Always
+        env:
+          - name: MONGO_URL
+            value: mongodb://admin:lintang@ququiz-mongodb-0.ququiz-mongodb-svc.mongodb.svc.cluster.local:27017,ququiz-mongodb-1.ququiz-mongodb-svc.mongodb.svc.cluster.local:27017,ququiz-mongodb-2.ququiz-mongodb-svc.mongodb.svc.cluster.local:27017/admin?replicaSet=ququiz-mongodb&ssl=false&readPreference=secondaryPreferred
+          - name: MONGO_DB
+            value: ququiz
+          - name: MONGO_WRITE_URL
+            value: mongodb://admin:lintang@ququiz-mongodb-0.ququiz-mongodb-svc.mongodb.svc.cluster.local:27017,ququiz-mongodb-1.ququiz-mongodb-svc.mongodb.svc.cluster.local:27017,ququiz-mongodb-2.ququiz-mongodb-svc.mongodb.svc.cluster.local:27017/admin?replicaSet=ququiz-mongodb&ssl=false
+          - name: REDIS_ADDR
+            value: redis-headless.redis:6379
+          - name: APP_ENV
+            value: k8s
+        resources:
+          limits:
+            memory: "1200Mi"
+            cpu: "1000m"
+        ports:
+            - containerPort: 9995
+            - containerPort: 6005
+      
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: lintang-quiz-query-service-service
+spec:
+  selector: 
+    app: lintang-quiz-query-service
+  ports:
+    - port: 9995
+      name: http
+      targetPort: 9995
+    - port: 9996
+      name: grpc
+      targetPort: 9996
+      

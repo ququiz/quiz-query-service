@@ -1,11 +1,10 @@
 package pkg
+// access log  zap bikin qps nya turun drastis (pake hlog bawaan hertz dapet 40k , pake zap cuma 10k)
+// latency juga makin naik
 
 import (
-	"context"
 	"os"
-	"time"
 
-	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/cloudwego/hertz/pkg/app/server/binding"
 	"github.com/natefinch/lumberjack"
 	"go.uber.org/zap"
@@ -17,6 +16,7 @@ import (
 
 var lg *zap.Logger
 
+//
 // pake hertzlogger gak kayak pake uber/zap logger beneran
 func InitZapLogger(cfg *config.Config) *hertzzap.Logger {
 	productionCfg := zap.NewProductionEncoderConfig()
@@ -116,25 +116,4 @@ func CreateCustomValidationError() *binding.ValidateConfig {
 		return &err
 	})
 	return validateConfig
-}
-
-// accessLogger nbawaan zap bagus ini pas di load testing
-func AccessLog() app.HandlerFunc {
-	return func(c context.Context, ctx *app.RequestContext) {
-		start := time.Now()
-		path := string(ctx.Request.URI().Path()[:])
-		query := string(ctx.Request.URI().QueryString()[:])
-		ctx.Next(c)
-		cost := time.Since(start)
-		lg.Info(path,
-			zap.Int("status", ctx.Response.StatusCode()),
-			zap.String("method", string(ctx.Request.Header.Method())),
-			zap.String("path", path),
-			zap.String("query", query),
-			zap.String("ip", ctx.ClientIP()),
-			zap.String("user-agent", string(ctx.Host())),
-			zap.String("errors", ctx.Errors.String()),
-			zap.Duration("cost", cost),
-		)
-	}
 }

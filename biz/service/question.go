@@ -11,6 +11,7 @@ import (
 type QuestionRepository interface {
 	GetAllByQuiz(ctx context.Context, quizID string) ([]domain.BaseQuizWithQuestionAggregate, error)
 	GetUserAnswerInAQuiz(ctx context.Context, quizID string, userID string) ([]domain.QuestionWithUserAnswerAggregate, error)
+	Get(ctx context.Context, questionID string) (domain.Question, error)
 }
 
 type CachedQsRepo interface {
@@ -21,11 +22,11 @@ type CachedQsRepo interface {
 type QuestionService struct {
 	questionRepo QuestionRepository
 	cachedQsRepo CachedQsRepo
-	QuizRepo     QuizRepository
+	quizRepo     QuizRepository
 }
 
-func NewQuestionService(questionRepo QuestionRepository, cachedQsRepo CachedQsRepo) *QuestionService {
-	return &QuestionService{questionRepo: questionRepo, cachedQsRepo: cachedQsRepo}
+func NewQuestionService(questionRepo QuestionRepository, cachedQsRepo CachedQsRepo, quizRepo QuizRepository) *QuestionService {
+	return &QuestionService{questionRepo: questionRepo, cachedQsRepo: cachedQsRepo, quizRepo: quizRepo}
 }
 
 func (s *QuestionService) GetAllByQuiz(ctx context.Context, quizID string, userID string) ([]domain.Question, error) {
@@ -56,6 +57,36 @@ func (s *QuestionService) GetAllByQuiz(ctx context.Context, quizID string, userI
 	}
 
 	for i, _ := range questions {
+		if len(questions[i].Choices) > 0 {
+			for j, _ := range questions[i].Choices {
+				questions[i].Choices[j].IsCorrect = false // biar user  gak tau jawaban benernya
+			}
+		}
+
+	}
+
+	return questions, nil
+}
+
+func (s *QuestionService) GetAllByQuizNotCached(ctx context.Context, quizID string, userID string) ([]domain.Question, error) {
+	// err := s.QuizRepo.IsUserQuizParticipant(ctx, quizID, userID)
+	// if err != nil {
+	// 	return []domain.Question{}, domain.WrapErrorf(err, domain.ErrUnauthorized,  "you are not authorized")
+	// }
+
+	var questions []domain.Question
+
+	// get from database
+	quizs, err := s.questionRepo.GetAllByQuiz(ctx, quizID)
+	if err != nil {
+		return []domain.Question{}, err
+	}
+
+	for _, quiz := range quizs {
+		questions = append(questions, quiz.Questions...)
+	}
+
+	for i, _ := range questions {
 		for i, _ := range questions[i].Choices {
 			questions[i].Choices[i].IsCorrect = false // biar user  gak tau jawaban benernya
 		}
@@ -65,6 +96,13 @@ func (s *QuestionService) GetAllByQuiz(ctx context.Context, quizID string, userI
 }
 
 func (s *QuestionService) GetUserAnswers(ctx context.Context, quizID string, userID string) ([]domain.QuestionWithUserAnswerAggregate, error) {
+	participants, err := s.quizRepo.IsUserQuizParticipant(ctx, quizID, userID)
+	if err != nil {
+		return []domain.QuestionWithUserAnswerAggregate{}, err
+	}
+	if len(participants) == 0 {
+		return []domain.QuestionWithUserAnswerAggregate{}, domain.WrapErrorf(err, domain.ErrBadParamInput, fmt.Sprintf("user %s not registered in quiz %s", userID, quizID))
+	}
 
 	userAnswers, err := s.questionRepo.GetUserAnswerInAQuiz(ctx, quizID, userID)
 	if err != nil {

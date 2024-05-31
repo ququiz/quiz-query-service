@@ -13,9 +13,11 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
     go build -o /bin/app .
 
 # Step 3: Final
-FROM scratch
+FROM alpine
 COPY --from=builder /app/config /config
+COPY --from=builder /app/k8s.env .
 COPY --from=builder /app/.env .
 COPY --from=builder /bin/app /bin/app
 CMD ["/bin/app"]
+
 

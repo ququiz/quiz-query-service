@@ -12,3 +12,38 @@ db.base_quiz.aggregate([
         $project: { "questions.user_answers": 0}
     }
   ])
+
+
+
+
+// mendapatkan jawaban user
+ 
+
+ db.base_quiz.aggregate([
+  {$match: {"_id": ObjectId("66595e7bf4416234e5518459")}},
+   {$unwind: 
+			{"path":"$questions"}
+	},
+   {$unwind: 
+			{"path":"$questions.user_answers"},
+	},
+  {$match: 
+			{"questions.user_answers.participant_id": "665966b6ae5f68a3695350b5"
+      }
+	}
+ ])
+
+
+
+// is user participant_id
+ [
+  {$match: {"_id": ObjectId("6659698712233718c8296017")}},
+  
+  {$unwind: 
+			{"path": "$participants"}
+	},
+  {
+  $match: 
+			{"participants.user_id": ""85ccef26-1134-44ec-9eee-ecdc58e7c263""},
+	}
+ ]

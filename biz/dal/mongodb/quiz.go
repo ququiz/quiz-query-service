@@ -2,8 +2,10 @@ package mongodb
 
 import (
 	"context"
+	"fmt"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
 	"ququiz.org/lintang/quiz-query-service/biz/domain"
@@ -43,39 +45,69 @@ func (r *QuizRepository) GetAll(ctx context.Context) ([]domain.BaseQuiz, error) 
 	}
 
 	var quizs []domain.BaseQuiz
-	
+
 	// bawah gakbisa
 	if err := cursor.All(ctx, &quizs); err != nil {
-	zap.L().Error("cursor.All()", zap.Error(err))
-	return []domain.BaseQuiz{}, err
+		zap.L().Error("cursor.All()", zap.Error(err))
+		return []domain.BaseQuiz{}, err
 	}
-	
+
 	return quizs, nil
 }
 
-func (r *QuizRepository) IsUserQuizParticipant(ctx context.Context, quizID string, userID string) error {
-	filter := bson.D{
+func (r *QuizRepository) Get(ctx context.Context, quizID string) (domain.BaseQuiz, error) {
+	coll := r.db.Collection("base_quiz")
+	quizIDObjectID, err := primitive.ObjectIDFromHex(quizID)
+	if err != nil {
+		zap.L().Error("primitive.ObjectIDFromHex (quizIDObjectID) (GetUserAnswerInAQuiz) (QuestionRepository)", zap.Error(err))
+		return domain.BaseQuiz{}, err
+	}
+
+	filter := bson.D{{"_id", quizIDObjectID}}
+	var quiz domain.BaseQuiz
+	err = coll.FindOne(ctx, filter).Decode(&quiz)
+	if err != nil {
+		return domain.BaseQuiz{}, domain.WrapErrorf(err, domain.ErrNotFound, fmt.Sprintf(`quiz with id %s not found`, quizID))
+	}
+	return quiz, nil
+}
+
+func (r *QuizRepository) IsUserQuizParticipant(ctx context.Context, quizID string, userID string) ([]domain.BaseQuizIsParticipant, error) {
+	quizIDObjectID, err := primitive.ObjectIDFromHex(quizID)
+	if err != nil {
+		zap.L().Error("primitive.ObjectIDFromHex (quizIDObjectID) (GetUserAnswerInAQuiz) (QuestionRepository)", zap.Error(err))
+		return []domain.BaseQuizIsParticipant{}, err
+	}
+	filterQuiz := bson.D{
+		{"$match", bson.D{
+			{"_id", quizIDObjectID},
+		}},
+	}
+	unwindParticipant := bson.D{
 		{"$unwind", bson.D{
 			{"path", "$participants"},
 		}},
+	}
+
+	filterParticipant := bson.D{
 		{"$match", bson.D{
-			{"$participants._id", userID},
+			{"participants.user_id", userID},
 		}},
 	}
 
-	coll := r.db.Collection("quiz")
+	coll := r.db.Collection("base_quiz")
 
-	cursor, err := coll.Aggregate(ctx, mongo.Pipeline{filter})
+	cursor, err := coll.Aggregate(ctx, mongo.Pipeline{filterQuiz, unwindParticipant, filterParticipant})
 	if err != nil {
 		zap.L().Error("coll.Aggregat (IsUserQuizParticipant) (QuizRepository)", zap.Error(err))
-		return err
+		return []domain.BaseQuizIsParticipant{}, err
 	}
 
-	var participant domain.BaseQuiz
+	var participant []domain.BaseQuizIsParticipant
 	if err := cursor.All(ctx, &participant); err != nil {
 		zap.L().Error("cursor.ALl()(IsUserQuizParticipant) (QuizRepository) ", zap.Error(err))
-		return err
+		return []domain.BaseQuizIsParticipant{}, err
 	}
 
-	return nil
+	return participant, nil
 }

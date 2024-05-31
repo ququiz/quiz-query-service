@@ -1,31 +1,47 @@
 version: "3"
 services:
-  quiz-question-service:
-    container_name: quiz-question-service
-    build:
-      context: .
-      dockerfile: Dockerfile
-    mem_limit: 2000mb
-    cpus: 2
-    ports:
-      - 9995:9995
+  # quiz-query-service:
+  #   container_name: quiz-query-service
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   mem_limit: 3000mb
+  #   cpus: 3
+  #   ports:
+  #     - 3503:3503
 
-  mongo:
-    container_name: mongo
-    image: mongo:4.4.14-rc0-focal
-    mem_limit: "800mb"
-    cpus: 1
-    restart: unless-stopped
+  # mongo:
+    # container_name: mongo
+    # image: mongo:4.4.14-rc0-focal
+    # mem_limit: "4000mb"
+    # cpus: 3
+    # restart: unless-stopped
+    # ports:
+    #   - "27017:27017"
+    # expose:
+    #   - "27017"
+
+  mongodb:
+    container_name: 'ququiz-mongo'
+    image: 'mongo:latest'
     ports:
-      - "27017:27017"
-    expose:
-      - "27017"
+      - '27017:27017'
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD}
+    env_file:
+      - ./.env
 
   redis:
     image: redis:7.0.1-alpine3.16
     container_name: redis
     hostname: redis
     restart: always
+    mem_limit: "2000mb"
+    cpus: 2
     ports:
       - 6379:6379
   
+  
+
+
