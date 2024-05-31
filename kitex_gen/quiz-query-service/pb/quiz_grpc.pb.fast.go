@@ -19,6 +19,11 @@ func (x *GetQuestionReq) FastRead(buf []byte, _type int8, number int32) (offset 
 		if err != nil {
 			goto ReadFieldError
 		}
+	case 2:
+		offset, err = x.fastReadField2(buf, _type)
+		if err != nil {
+			goto ReadFieldError
+		}
 	default:
 		offset, err = fastpb.Skip(buf, _type, number)
 		if err != nil {
@@ -34,6 +39,11 @@ ReadFieldError:
 
 func (x *GetQuestionReq) fastReadField1(buf []byte, _type int8) (offset int, err error) {
 	x.QuestionId, offset, err = fastpb.ReadString(buf, _type)
+	return offset, err
+}
+
+func (x *GetQuestionReq) fastReadField2(buf []byte, _type int8) (offset int, err error) {
+	x.QuizId, offset, err = fastpb.ReadString(buf, _type)
 	return offset, err
 }
 
@@ -142,6 +152,7 @@ func (x *GetQuestionReq) FastWrite(buf []byte) (offset int) {
 		return offset
 	}
 	offset += x.fastWriteField1(buf[offset:])
+	offset += x.fastWriteField2(buf[offset:])
 	return offset
 }
 
@@ -150,6 +161,14 @@ func (x *GetQuestionReq) fastWriteField1(buf []byte) (offset int) {
 		return offset
 	}
 	offset += fastpb.WriteString(buf[offset:], 1, x.GetQuestionId())
+	return offset
+}
+
+func (x *GetQuestionReq) fastWriteField2(buf []byte) (offset int) {
+	if x.QuizId == "" {
+		return offset
+	}
+	offset += fastpb.WriteString(buf[offset:], 2, x.GetQuizId())
 	return offset
 }
 
@@ -226,6 +245,7 @@ func (x *GetQuestionReq) Size() (n int) {
 		return n
 	}
 	n += x.sizeField1()
+	n += x.sizeField2()
 	return n
 }
 
@@ -234,6 +254,14 @@ func (x *GetQuestionReq) sizeField1() (n int) {
 		return n
 	}
 	n += fastpb.SizeString(1, x.GetQuestionId())
+	return n
+}
+
+func (x *GetQuestionReq) sizeField2() (n int) {
+	if x.QuizId == "" {
+		return n
+	}
+	n += fastpb.SizeString(2, x.GetQuizId())
 	return n
 }
 
@@ -307,6 +335,7 @@ func (x *GetQuizParticipantRes) sizeField1() (n int) {
 
 var fieldIDToName_GetQuestionReq = map[int32]string{
 	1: "QuestionId",
+	2: "QuizId",
 }
 
 var fieldIDToName_GetQuestionRes = map[int32]string{

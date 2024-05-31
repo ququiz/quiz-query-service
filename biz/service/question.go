@@ -12,6 +12,7 @@ type QuestionRepository interface {
 	GetAllByQuiz(ctx context.Context, quizID string) ([]domain.BaseQuizWithQuestionAggregate, error)
 	GetUserAnswerInAQuiz(ctx context.Context, quizID string, userID string) ([]domain.QuestionWithUserAnswerAggregate, error)
 	Get(ctx context.Context, questionID string) (domain.Question, error)
+	GetQuestionByIDAndQuizID(ctx context.Context, quizID string, questionID string) (domain.Question, error)
 }
 
 type CachedQsRepo interface {
@@ -35,8 +36,15 @@ func (s *QuestionService) GetAllByQuiz(ctx context.Context, quizID string, userI
 	// 	return []domain.Question{}, domain.WrapErrorf(err, domain.ErrUnauthorized,  "you are not authorized")
 	// }
 
+	_, err := s.quizRepo.Get(ctx, quizID)
+	// nilQuiz := domain.BaseQuiz{
+	// }
+	if err != nil {
+		return []domain.Question{}, domain.WrapErrorf(err, domain.ErrNotFound, fmt.Sprintf("quiz with id %s not found", quizID))
+	}
+
 	var questions []domain.Question
-	questions, err := s.cachedQsRepo.GetCachedQuestion(ctx, quizID)
+	questions, err = s.cachedQsRepo.GetCachedQuestion(ctx, quizID)
 	if err != nil {
 		// get from database
 		quizs, err := s.questionRepo.GetAllByQuiz(ctx, quizID)

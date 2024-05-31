@@ -111,3 +111,4 @@ func (r *QuizRepository) IsUserQuizParticipant(ctx context.Context, quizID strin
 
 	return participant, nil
 }
+

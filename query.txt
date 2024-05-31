@@ -44,6 +44,22 @@ db.base_quiz.aggregate([
 	},
   {
   $match: 
-			{"participants.user_id": ""85ccef26-1134-44ec-9eee-ecdc58e7c263""},
+			{"participants.user_id": "85ccef26-1134-44ec-9eee-ecdc58e7c263"},
 	}
  ]
+
+
+
+ // get question by id and by quizID
+
+db.base_quiz.aggregate( [
+  {$match: {"_id": ObjectId("6659698712233718c8296017")}},
+  
+  {$unwind: 
+			{"path": "$questions"}
+	},
+  {
+  $match: 
+			{"questions._id": ObjectId("85ccef26-1134-44ec-9eee-ecdc58e7c263")},
+	}
+ ])

@@ -6,6 +6,7 @@ option go_package = "quiz-query-service/pb";
 //  
 message GetQuestionReq {
     string question_id =1;
+    string quiz_id=2;
 }
 
 

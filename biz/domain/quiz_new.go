@@ -32,12 +32,6 @@ type BaseQuiz struct {
 	Status       QuizStatus         `json:"quiz_status" bson:"quiz_status"`
 }
 
-type Participant struct {
-	ID         primitive.ObjectID `bson:"_id" json:"id"`
-	UserID     string             `json:"user_id" bson:"user_id"`
-	FinalScore int64              `json:"final_score" bson:"final_score"`
-	Status     QuizStatus         `json:"status" bson:"status"`
-}
 type QuestionType string
 
 const (
@@ -45,11 +39,7 @@ const (
 	ESSAY    QuestionType = "ESSAY"
 )
 
-type Choice struct {
-	ID        primitive.ObjectID `bson:"_id" json:"id"`
-	Text      string             `json:"text" bson:"text"`
-	IsCorrect bool               `json:"is_correct" bson:"is_correct"`
-}
+
 
 type UserAnswer struct {
 	ChoiceID      string `bson:"choice_id" json:"choice_id"`
@@ -58,15 +48,6 @@ type UserAnswer struct {
 }
 
 
-type Question struct {
-	ID            primitive.ObjectID `bson:"_id" json:"id"`
-	Question      string             `json:"question" bson:"question"`
-	Type          QuestionType       `json:"type" bson:"type"`
-	Choices       []Choice           `json:"choices" bson:"choices"`
-	Weight        int32              `json:"weight" bson:"weight"`
-	CorrectAnswer string             `json:"correct_answer" bson:"correct_answer"`
-	UserAnswers   []UserAnswer       `json:"user_answers" bson:"user_answers"`
-}
 
 // -----------------------------------------------
 // yang dibawah bukan disimpen di mongodb

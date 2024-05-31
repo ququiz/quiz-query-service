@@ -4,6 +4,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net"
 	"time"
 
@@ -19,7 +20,9 @@ import (
 	"ququiz.org/lintang/quiz-query-service/biz/router"
 	"ququiz.org/lintang/quiz-query-service/biz/service"
 	"ququiz.org/lintang/quiz-query-service/config"
+	"ququiz.org/lintang/quiz-query-service/kitex_gen/quiz-query-service/pb/quizqueryservice"
 	"ququiz.org/lintang/quiz-query-service/pkg"
+	"ququiz.org/lintang/quiz-query-service/rpc"
 
 	kitexServer "github.com/cloudwego/kitex/server"
 )
@@ -72,15 +75,15 @@ func main() {
 	opts = append(opts, kitexServer.WithServiceAddr(addr))
 	opts = append(opts, kitexServer.WithExitWaitTime(5*time.Second))
 
-	// srv := helloservice.NewServer(new(rpc.HelloServiceImpl), opts...) //grpc server
-
-	// go func() {
-	// 	// start kitex rpc server (grpc)
-	// 	err := srv.Run()
-	// 	if err != nil {
-	// 		log.Fatal(err)
-	// 	}
-	// }()
+	quizGRPCSvc := rpc.NewQuizService(questionRepo, quizRepo)
+	srv := quizqueryservice.NewServer(quizGRPCSvc, opts...)
+	go func() {
+		// start kitex rpc server (grpc)
+		err := srv.Run()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}()
 
 	h.Spin()
 }
