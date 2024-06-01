@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"go.uber.org/zap"
 	"ququiz.org/lintang/quiz-query-service/biz/domain"
@@ -36,11 +37,20 @@ func (s *QuestionService) GetAllByQuiz(ctx context.Context, quizID string, userI
 	// 	return []domain.Question{}, domain.WrapErrorf(err, domain.ErrUnauthorized,  "you are not authorized")
 	// }
 
-	_, err := s.quizRepo.Get(ctx, quizID)
+	quiz, err := s.quizRepo.Get(ctx, quizID)
 	// nilQuiz := domain.BaseQuiz{
 	// }
+
 	if err != nil {
 		return []domain.Question{}, domain.WrapErrorf(err, domain.ErrNotFound, fmt.Sprintf("quiz with id %s not found", quizID))
+	}
+
+	// check apakah user masih allow to liat question quiznya (time.now < quiz.endTime)
+	now := time.Now()
+	quizEndTime := quiz.EndTime
+	if now.Unix() > quizEndTime.Unix() {
+		zap.L().Debug(fmt.Sprintf("user %s not allowed to access quiz %s karena waktu saat ini sudah melewati end time quiz", userID, quizID))
+		return []domain.Question{}, domain.WrapErrorf(err, domain.ErrBadParamInput, fmt.Sprintf("user %s not allowed to access quiz %s karena waktu saat ini sudah melewati end time quiz", userID, quizID))
 	}
 
 	var questions []domain.Question

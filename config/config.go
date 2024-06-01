@@ -17,6 +17,7 @@ type (
 		GRPC
 		Mongodb
 		Redis
+		RabbitMQ
 	}
 
 	// App -.
@@ -44,14 +45,18 @@ type (
 	}
 
 	Mongodb struct {
-		MongoURL string `json:"mongo_url" yaml:"mongoURL" env:"MONGO_URL"`
-		Database string `json:"mongo_db" env:"MONGO_DB"`
+		MongoURL      string `json:"mongo_url" yaml:"mongoURL" env:"MONGO_URL"`
+		Database      string `json:"mongo_db" env:"MONGO_DB"`
 		MongoWriteURL string `json:"mongo_write_url" yaml:"mongoWriteURL" env:"MONGO_WRITE_URL"`
 	}
 
 	Redis struct {
 		RedisAddr     string `json:"redis_addr" env:"REDIS_ADDR"`
 		RedisPassword string `json:"redis_password" env:"redis_password"`
+	}
+
+	RabbitMQ struct {
+		RMQAddress string `json:"rabbitmqAddress" yaml:"rmqAddress" env:"RABBITMQ_ADDRESS"`
 	}
 )
 
