@@ -24,7 +24,7 @@ type QuestionService interface {
 	GetUserAnswers(ctx context.Context, quizID string, userID string) ([]domain.QuestionWithUserAnswerAggregate, error)
 	GetAllByQuizNotCached(ctx context.Context, quizID string, userID string) ([]domain.Question, error)
 	UserAnswerAQuestion(ctx context.Context, quizID string, questionID string,
-		userChoiceID string, userEssayAnswer string, userID string) (bool, error)
+		userChoiceID string, userEssayAnswer string, userID string, username string) (bool, error)
 }
 
 type QuizHandler struct {
@@ -247,8 +247,8 @@ func (h *QuizHandler) UserAnswerAQuestion(ctx context.Context, c *app.RequestCon
 		return
 	}
 	userID, _ := c.Get("userID")
-
-	isCorrect, err := h.questionSvc.UserAnswerAQuestion(ctx, req.QuizID, req.QuestionID, req.ChoiceID, req.EssayAnswer, userID.(string))
+	username, _ := c.Get("username")
+	isCorrect, err := h.questionSvc.UserAnswerAQuestion(ctx, req.QuizID, req.QuestionID, req.ChoiceID, req.EssayAnswer, userID.(string), username.(string))
 	if err != nil {
 		c.JSON(getStatusCode(err), ResponseError{Message: err.Error()})
 		return

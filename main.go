@@ -24,6 +24,8 @@ import (
 	"github.com/cloudwego/hertz/pkg/common/hlog"
 	"github.com/cloudwego/hertz/pkg/route"
 	"github.com/cloudwego/kitex/pkg/transmeta"
+	"github.com/hertz-contrib/cors"
+	"github.com/hertz-contrib/logger/accesslog"
 	"github.com/hertz-contrib/pprof"
 	_ "go.uber.org/automaxprocs"
 
@@ -46,6 +48,21 @@ func main() {
 		server.WithExitWaitTime(4*time.Second),
 	)
 
+	h.Use(accesslog.New()) // jangan pake acess log zap (bikin latency makin tinggi)
+
+	// setup cors
+	corsHandler := cors.New(cors.Config{
+		AllowAllOrigins:  true,
+		AllowMethods:     []string{"PUT", "PATCH", "GET", "POST", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "content-type", "authorization", "Accept", "User-Agent", "Cache-Control", "Pragma"},
+		ExposeHeaders:    []string{"Origin", "content-type", "authorization", "Accept", "User-Agent", "Cache-Control", "Pragma"},
+		AllowCredentials: true,
+
+		MaxAge: 12 * time.Hour,
+	})
+
+	h.Use(corsHandler)
+
 	pprof.Register(h)
 	var callback []route.CtxCallback
 
@@ -61,8 +78,8 @@ func main() {
 
 	// rabbitmq
 	rmq := rabbitmq.NewRabbitMQ(cfg)
-	consumer := rabbitmq.NewRabbitMQConsumer(rmq)
-	err = consumer.ListenAndServe()
+	scoringSvcConsumer := rabbitmq.NewScoringSvcConsumer(rmq)
+	err = scoringSvcConsumer.ListenAndServe()
 
 	// rabbtimq consumer producer
 	quizCommandProd := rabbitmq.NewQuizCommandServiceProducerMQ(rmq)

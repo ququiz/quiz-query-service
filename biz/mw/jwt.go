@@ -21,7 +21,9 @@ var (
 )
 
 type User struct {
-	ID string
+	ID string 	`json:"userId"`
+	Username string `json:"username"`
+
 }
 
 func GetJwtMiddleware() *jwt.HertzJWTMiddleware {
@@ -55,6 +57,7 @@ func GetJwtMiddleware() *jwt.HertzJWTMiddleware {
 		Authorizator: func(data interface{}, ctx context.Context, c *app.RequestContext) bool {
 			if v, ok := data.(*User); ok {
 				c.Set("userID", v.ID)
+				c.Set("username", v.Username)
 				return true
 			}
 

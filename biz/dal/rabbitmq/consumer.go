@@ -6,17 +6,17 @@ import (
 	"go.uber.org/zap"
 )
 
-type RabbitMQConsumer struct {
+type ScoringSvcConsumer struct {
 	rmq *RabbitMQ
 }
 
-func NewRabbitMQConsumer(r *RabbitMQ) *RabbitMQConsumer {
-	return &RabbitMQConsumer{r}
+func NewScoringSvcConsumer(r *RabbitMQ) *ScoringSvcConsumer {
+	return &ScoringSvcConsumer{r}
 }
 
-const rabbitMQConsumerName = "query-read-consumer"
+const ScoringSvcConsumerName = "quiz-query-consumer"
 
-func (r *RabbitMQConsumer) ListenAndServe() error {
+func (r *ScoringSvcConsumer) ListenAndServe() error {
 	queue, err := r.rmq.Channel.QueueDeclare(
 		"",
 		false, // durable
@@ -41,7 +41,7 @@ func (r *RabbitMQConsumer) ListenAndServe() error {
 	}
 	msgs, err := r.rmq.Channel.Consume(
 		queue.Name,
-		rabbitMQConsumerName,
+		ScoringSvcConsumerName,
 		false, // auto-ack
 		false, // exclusive
 		false, // no-local

@@ -146,7 +146,7 @@ func (s *QuestionService) GetUserAnswers(ctx context.Context, quizID string, use
 }
 
 func (s *QuestionService) UserAnswerAQuestion(ctx context.Context, quizID string, questionID string,
-	userChoiceID string, userEssayAnswer string, userID string) (bool, error) {
+	userChoiceID string, userEssayAnswer string, userID string, username string ) (bool, error) {
 	isCorrect, correctAnswer, err := s.questionRepo.IsUserAnswerCorrect(ctx, quizID, questionID, userChoiceID, userEssayAnswer)
 	if err != nil {
 
@@ -154,6 +154,7 @@ func (s *QuestionService) UserAnswerAQuestion(ctx context.Context, quizID string
 	}
 
 	correctAnswer.UserID = userID
+	correctAnswer.Username = username
 	if isCorrect {
 		// jika jawaban user benar, maka send message to scoring service, buat dicalculate new score nya (ditambah scorenya)
 		err := s.scoringProducerMQ.SendCorrectAnswer(ctx, correctAnswer)
