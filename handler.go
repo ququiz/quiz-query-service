@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	pb "ququiz.org/lintang/quiz-query-service/kitex_gen/quiz-query-service/pb"
+	pb "ququiz/lintang/quiz-query-service/kitex_gen/quiz-query-service/pb"
 )
 
 // QuizQueryServiceImpl implements the last service interface defined in the IDL.

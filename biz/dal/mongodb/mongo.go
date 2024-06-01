@@ -7,7 +7,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
-	"ququiz.org/lintang/quiz-query-service/config"
+	"ququiz/lintang/quiz-query-service/config"
 )
 
 type Mongodb struct {

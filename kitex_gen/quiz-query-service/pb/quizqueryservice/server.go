@@ -3,7 +3,7 @@ package quizqueryservice
 
 import (
 	server "github.com/cloudwego/kitex/server"
-	pb "ququiz.org/lintang/quiz-query-service/kitex_gen/quiz-query-service/pb"
+	pb "ququiz/lintang/quiz-query-service/kitex_gen/quiz-query-service/pb"
 )
 
 // NewServer creates a server.Server with the given handler and options.

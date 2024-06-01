@@ -1,4 +1,5 @@
 package pkg
+
 // access log  zap bikin qps nya turun drastis (pake hlog bawaan hertz dapet 40k , pake zap cuma 10k)
 // latency juga makin naik
 
@@ -9,14 +10,13 @@ import (
 	"github.com/natefinch/lumberjack"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-	"ququiz.org/lintang/quiz-query-service/config"
+	"ququiz/lintang/quiz-query-service/config"
 
 	hertzzap "github.com/hertz-contrib/logger/zap"
 )
 
 var lg *zap.Logger
 
-//
 // pake hertzlogger gak kayak pake uber/zap logger beneran
 func InitZapLogger(cfg *config.Config) *hertzzap.Logger {
 	productionCfg := zap.NewProductionEncoderConfig()

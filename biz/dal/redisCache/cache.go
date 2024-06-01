@@ -8,7 +8,7 @@ import (
 
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
-	"ququiz.org/lintang/quiz-query-service/biz/domain"
+	"ququiz/lintang/quiz-query-service/biz/domain"
 )
 
 type RedisCache struct {

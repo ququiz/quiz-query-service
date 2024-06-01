@@ -9,7 +9,7 @@ import (
 	kitex "github.com/cloudwego/kitex/pkg/serviceinfo"
 	streaming "github.com/cloudwego/kitex/pkg/streaming"
 	proto "google.golang.org/protobuf/proto"
-	pb "ququiz.org/lintang/quiz-query-service/kitex_gen/quiz-query-service/pb"
+	pb "ququiz/lintang/quiz-query-service/kitex_gen/quiz-query-service/pb"
 )
 
 var errInvalidMessageType = errors.New("invalid message type for service method handler")

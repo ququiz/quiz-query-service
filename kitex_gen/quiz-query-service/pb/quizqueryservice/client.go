@@ -6,7 +6,7 @@ import (
 	"context"
 	client "github.com/cloudwego/kitex/client"
 	callopt "github.com/cloudwego/kitex/client/callopt"
-	pb "ququiz.org/lintang/quiz-query-service/kitex_gen/quiz-query-service/pb"
+	pb "ququiz/lintang/quiz-query-service/kitex_gen/quiz-query-service/pb"
 )
 
 // Client is designed to provide IDL-compatible methods with call-option parameter for kitex framework.

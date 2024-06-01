@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 
-	"ququiz.org/lintang/quiz-query-service/biz/domain"
+	"ququiz/lintang/quiz-query-service/biz/domain"
 )
 
 type QuizRepository interface {

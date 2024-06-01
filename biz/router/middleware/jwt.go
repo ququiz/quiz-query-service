@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"github.com/cloudwego/hertz/pkg/app"
-	jwt "ququiz.org/lintang/quiz-query-service/biz/mw"
+	jwt "ququiz/lintang/quiz-query-service/biz/mw"
 )
 
 func Protected() []app.HandlerFunc {

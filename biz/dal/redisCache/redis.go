@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/redis/go-redis/v9"
-	"ququiz.org/lintang/quiz-query-service/config"
+	"ququiz/lintang/quiz-query-service/config"
 )
 
 type Redis struct {
@@ -17,9 +17,9 @@ func NewRedis(cfg *config.Config) *Redis {
 	// 	Addrs: []string{"redis1.redis-svc.redis.svc.cluster.local:16379", ""},
 	// })
 	cli := redis.NewClient(&redis.Options{
-		Addr:     cfg.Redis.RedisAddr,
+		Addr: cfg.Redis.RedisAddr,
 		// Password: cfg.Redis.RedisPassword,
-		DB:       0,
+		DB: 0,
 	})
 
 	return &Redis{cli}

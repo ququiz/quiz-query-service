@@ -7,9 +7,9 @@ import (
 	"github.com/brianvoe/gofakeit/v7"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.uber.org/zap"
-	"ququiz.org/lintang/quiz-query-service/biz/dal/mongodb"
-	"ququiz.org/lintang/quiz-query-service/biz/domain"
-	"ququiz.org/lintang/quiz-query-service/config"
+	"ququiz/lintang/quiz-query-service/biz/dal/mongodb"
+	"ququiz/lintang/quiz-query-service/biz/domain"
+	"ququiz/lintang/quiz-query-service/config"
 )
 
 // setiap quiz ada 20 question
@@ -147,7 +147,7 @@ func InsertQuizData(cfg *config.Config, mongo *mongodb.Mongodb) {
 			CreatorID:    faker.UUID(),
 			Passcode:     faker.Password(true, false, true, false, false, 5),
 			StartTime:    faker.DateRange(time.Date(2023, 1, 1, 0, 0, 0, 0, &time.Location{}), time.Now()),
-			EndTime:      faker.DateRange(time.Date(2024, 1, 1, 0, 0, 0, 0, &time.Location{}), time.Now().Add(time.Hour * 24 * 365 * 2)),
+			EndTime:      faker.DateRange(time.Date(2024, 1, 1, 0, 0, 0, 0, &time.Location{}), time.Now().Add(time.Hour*24*365*2)),
 			Questions:    thisQuizQuestions,
 			Participants: thisQuizParticipant,
 			Status:       domain.QuizStatus(faker.RandomString([]string{"NOT_STARTED", "IN_PROGRESS", "DONE"})),

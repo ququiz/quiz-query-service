@@ -3,7 +3,7 @@ package rabbitmq
 import (
 	"github.com/streadway/amqp"
 	"go.uber.org/zap"
-	"ququiz.org/lintang/quiz-query-service/config"
+	"ququiz/lintang/quiz-query-service/config"
 )
 
 type RabbitMQ struct {

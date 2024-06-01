@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"go.uber.org/zap"
-	"ququiz.org/lintang/quiz-query-service/biz/domain"
+	"ququiz/lintang/quiz-query-service/biz/domain"
 )
 
 type QuestionRepository interface {

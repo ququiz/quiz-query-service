@@ -6,8 +6,8 @@ import (
 	"github.com/cloudwego/kitex/pkg/remote/trans/nphttp2/codes"
 	"github.com/cloudwego/kitex/pkg/remote/trans/nphttp2/status"
 	"go.uber.org/zap"
-	"ququiz.org/lintang/quiz-query-service/biz/service"
-	pb "ququiz.org/lintang/quiz-query-service/kitex_gen/quiz-query-service/pb"
+	"ququiz/lintang/quiz-query-service/biz/service"
+	pb "ququiz/lintang/quiz-query-service/kitex_gen/quiz-query-service/pb"
 )
 
 // QuizQueryServiceImpl implements the last service interface defined in the IDL.

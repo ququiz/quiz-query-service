@@ -7,7 +7,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
-	"ququiz.org/lintang/quiz-query-service/biz/domain"
+	"ququiz/lintang/quiz-query-service/biz/domain"
 )
 
 type QuestionRepository struct {
@@ -173,8 +173,5 @@ func (r *QuestionRepository) GetQuestionByIDAndQuizID(ctx context.Context, quizI
 		return domain.Question{}, err
 	}
 
-	return question, nil 
+	return question, nil
 }
-
-
-

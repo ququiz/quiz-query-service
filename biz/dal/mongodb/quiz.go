@@ -8,7 +8,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
-	"ququiz.org/lintang/quiz-query-service/biz/domain"
+	"ququiz/lintang/quiz-query-service/biz/domain"
 )
 
 type QuizRepository struct {
@@ -111,4 +111,3 @@ func (r *QuizRepository) IsUserQuizParticipant(ctx context.Context, quizID strin
 
 	return participant, nil
 }
-

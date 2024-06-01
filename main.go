@@ -15,16 +15,16 @@ import (
 	"github.com/cloudwego/kitex/pkg/transmeta"
 	"github.com/hertz-contrib/pprof"
 	_ "go.uber.org/automaxprocs"
-	"ququiz.org/lintang/quiz-query-service/biz/dal/mongodb"
-	"ququiz.org/lintang/quiz-query-service/biz/dal/rabbitmq"
-	rediscache "ququiz.org/lintang/quiz-query-service/biz/dal/redisCache"
-	"ququiz.org/lintang/quiz-query-service/biz/router"
-	"ququiz.org/lintang/quiz-query-service/biz/service"
-	"ququiz.org/lintang/quiz-query-service/biz/util"
-	"ququiz.org/lintang/quiz-query-service/config"
-	"ququiz.org/lintang/quiz-query-service/kitex_gen/quiz-query-service/pb/quizqueryservice"
-	"ququiz.org/lintang/quiz-query-service/pkg"
-	"ququiz.org/lintang/quiz-query-service/rpc"
+	"ququiz/lintang/quiz-query-service/biz/dal/mongodb"
+	"ququiz/lintang/quiz-query-service/biz/dal/rabbitmq"
+	rediscache "ququiz/lintang/quiz-query-service/biz/dal/redisCache"
+	"ququiz/lintang/quiz-query-service/biz/router"
+	"ququiz/lintang/quiz-query-service/biz/service"
+	"ququiz/lintang/quiz-query-service/biz/util"
+	"ququiz/lintang/quiz-query-service/config"
+	"ququiz/lintang/quiz-query-service/kitex_gen/quiz-query-service/pb/quizqueryservice"
+	"ququiz/lintang/quiz-query-service/pkg"
+	"ququiz/lintang/quiz-query-service/rpc"
 
 	kitexServer "github.com/cloudwego/kitex/server"
 )
@@ -62,7 +62,6 @@ func main() {
 	rmq := rabbitmq.NewRabbitMQ(cfg)
 	consumer := rabbitmq.NewRabbitMQConsumer(rmq)
 	err = consumer.ListenAndServe()
-	
 
 	// service
 	questionService := service.NewQuestionService(questionRepo, cacheRepo, quizRepo)

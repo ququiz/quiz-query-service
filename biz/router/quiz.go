@@ -9,8 +9,8 @@ import (
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/cloudwego/hertz/pkg/app/server"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"ququiz.org/lintang/quiz-query-service/biz/domain"
-	"ququiz.org/lintang/quiz-query-service/biz/router/middleware"
+	"ququiz/lintang/quiz-query-service/biz/domain"
+	"ququiz/lintang/quiz-query-service/biz/router/middleware"
 )
 
 type QuizService interface {

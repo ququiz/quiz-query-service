@@ -7,9 +7,9 @@ package util
 // 	"github.com/brianvoe/gofakeit/v7"
 // 	"go.mongodb.org/mongo-driver/bson/primitive"
 // 	"go.uber.org/zap"
-// 	"ququiz.org/lintang/quiz-query-service/biz/dal/mongodb"
-// 	"ququiz.org/lintang/quiz-query-service/biz/domain"
-// 	"ququiz.org/lintang/quiz-query-service/config"
+// 	"ququiz/lintang/quiz-query-service/biz/dal/mongodb"
+// 	"ququiz/lintang/quiz-query-service/biz/domain"
+// 	"ququiz/lintang/quiz-query-service/config"
 // )
 
 // // setiap quiz ada 20 question

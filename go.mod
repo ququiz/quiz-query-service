@@ -1,4 +1,4 @@
-module ququiz.org/lintang/quiz-query-service
+module ququiz/lintang/quiz-query-service
 
 go 1.22.2
 
