@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"go.uber.org/zap"
 	"ququiz/lintang/quiz-query-service/biz/domain"
+
+	"go.uber.org/zap"
 )
 
 type QuestionRepository interface {
@@ -14,6 +15,8 @@ type QuestionRepository interface {
 	GetUserAnswerInAQuiz(ctx context.Context, quizID string, userID string) ([]domain.QuestionWithUserAnswerAggregate, error)
 	Get(ctx context.Context, questionID string) (domain.Question, error)
 	GetQuestionByIDAndQuizID(ctx context.Context, quizID string, questionID string) (domain.Question, error)
+	IsUserAnswerCorrect(ctx context.Context, quizID string, questionID string,
+		userChoiceID string, userEssayAnswer string) (bool, domain.CorrectAnswer, error)
 }
 
 type CachedQsRepo interface {
@@ -21,14 +24,26 @@ type CachedQsRepo interface {
 	SetCachedQuestion(ctx context.Context, quizID string, qs []domain.Question) error
 }
 
-type QuestionService struct {
-	questionRepo QuestionRepository
-	cachedQsRepo CachedQsRepo
-	quizRepo     QuizRepository
+type ScoringSvcProducerMQ interface {
+	SendCorrectAnswer(ctx context.Context, correctAnswerMsg domain.CorrectAnswer) error
 }
 
-func NewQuestionService(questionRepo QuestionRepository, cachedQsRepo CachedQsRepo, quizRepo QuizRepository) *QuestionService {
-	return &QuestionService{questionRepo: questionRepo, cachedQsRepo: cachedQsRepo, quizRepo: quizRepo}
+type QuizCommandProducerMQ interface {
+	SendCorrectAnswerToQuizCommandService(ctx context.Context, userAnswerMsg domain.UserAnswer) error
+}
+
+type QuestionService struct {
+	questionRepo          QuestionRepository
+	cachedQsRepo          CachedQsRepo
+	quizRepo              QuizRepository
+	scoringProducerMQ     ScoringSvcProducerMQ
+	quizCommandProducerMQ QuizCommandProducerMQ
+}
+
+func NewQuestionService(questionRepo QuestionRepository, cachedQsRepo CachedQsRepo, quizRepo QuizRepository,
+	sProd ScoringSvcProducerMQ, quizCommandProd QuizCommandProducerMQ) *QuestionService {
+	return &QuestionService{questionRepo: questionRepo, cachedQsRepo: cachedQsRepo, quizRepo: quizRepo,
+		scoringProducerMQ: sProd, quizCommandProducerMQ: quizCommandProd}
 }
 
 func (s *QuestionService) GetAllByQuiz(ctx context.Context, quizID string, userID string) ([]domain.Question, error) {
@@ -128,4 +143,37 @@ func (s *QuestionService) GetUserAnswers(ctx context.Context, quizID string, use
 	}
 
 	return userAnswers, nil
+}
+
+func (s *QuestionService) UserAnswerAQuestion(ctx context.Context, quizID string, questionID string,
+	userChoiceID string, userEssayAnswer string, userID string) (bool, error) {
+	isCorrect, correctAnswer, err := s.questionRepo.IsUserAnswerCorrect(ctx, quizID, questionID, userChoiceID, userEssayAnswer)
+	if err != nil {
+
+		return false, err
+	}
+
+	correctAnswer.UserID = userID
+	if isCorrect {
+		// jika jawaban user benar, maka send message to scoring service, buat dicalculate new score nya (ditambah scorenya)
+		err := s.scoringProducerMQ.SendCorrectAnswer(ctx, correctAnswer)
+		if err != nil {
+			zap.L().Error("s.scoringProducerMQ.SendCorrectAnswer", zap.Error(err))
+			return false, err
+		}
+	}
+	// jika jawaban salah ya gak usah kirim ke scoring service, karan skor user akan sama (gak ditambah sama sekali)..
+
+	// send mesage to quiz-command-service mau jawaban user benar/salah, buat insert jawaban user ke database
+	err = s.quizCommandProducerMQ.SendCorrectAnswerToQuizCommandService(ctx, domain.UserAnswer{
+		ChoiceID:      userChoiceID,
+		ParticipantID: userID,
+		Answer:        userEssayAnswer,
+	})
+
+	if err != nil {
+		zap.L().Error("s.quizCommandProducerMQ.SendCorrectAnswerToQuizCommandService", zap.Error(err))
+		return false, err
+	}
+	return isCorrect, nil
 }

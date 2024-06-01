@@ -6,11 +6,12 @@ import (
 	"net/http"
 	"time"
 
+	"ququiz/lintang/quiz-query-service/biz/domain"
+	"ququiz/lintang/quiz-query-service/biz/router/middleware"
+
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/cloudwego/hertz/pkg/app/server"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"ququiz/lintang/quiz-query-service/biz/domain"
-	"ququiz/lintang/quiz-query-service/biz/router/middleware"
 )
 
 type QuizService interface {
@@ -22,6 +23,8 @@ type QuestionService interface {
 	GetAllByQuiz(ctx context.Context, quizID string, userID string) ([]domain.Question, error)
 	GetUserAnswers(ctx context.Context, quizID string, userID string) ([]domain.QuestionWithUserAnswerAggregate, error)
 	GetAllByQuizNotCached(ctx context.Context, quizID string, userID string) ([]domain.Question, error)
+	UserAnswerAQuestion(ctx context.Context, quizID string, questionID string,
+		userChoiceID string, userEssayAnswer string, userID string) (bool, error)
 }
 
 type QuizHandler struct {
@@ -47,6 +50,7 @@ func QuizRouter(r *server.Hertz, q QuizService, questionSvc QuestionService) {
 			qH.GET("/:quizID/questionsNotCached", append(middleware.Protected(), handler.GetQuizQuestionNotCached)...) //append(middleware.Protected(),
 
 			qH.GET("/:quizID/result", append(middleware.Protected(), handler.GetUserAnswer)...)
+			qH.POST("/:quizID/questions/:questionID/answer", append(middleware.Protected(), handler.UserAnswerAQuestion)...)
 
 		}
 	}
@@ -93,7 +97,7 @@ func (h *QuizHandler) GetAllQuiz(ctx context.Context, c *app.RequestContext) {
 }
 
 type getQuestionReq struct {
-	QuizID string `path:"quizID,required" vd:"regexp('^\\w');  msg:'quizID haruslah a-z,A-Z,0-9'"`
+	QuizID string `path:"quizID,required" vd:"regexp('^\\w') && len($) == 24;  msg:'quizID haruslah a-z,A-Z,0-9'"`
 }
 
 type getQuestionRes struct {
@@ -159,7 +163,7 @@ func (h *QuizHandler) GetQuizQuestionNotCached(ctx context.Context, c *app.Reque
 }
 
 type getUserAnswerReq struct {
-	QuizID string `path:"quizID,required" vd:"regexp('^\\w');  msg:'quizID haruslah a-z,A-Z,0-9'" `
+	QuizID string `path:"quizID,required" vd:"regexp('^\\w') && len($) == 24;  msg:'quizID haruslah a-z,A-Z,0-9'" `
 }
 
 type userAnswerRes struct {
@@ -198,7 +202,7 @@ func (h *QuizHandler) GetUserAnswer(ctx context.Context, c *app.RequestContext) 
 }
 
 type getQuizDetailReq struct {
-	QuizID string `path:"quizID,required" vd:"regexp('^\\w');  msg:'quizID haruslah a-z,A-Z,0-9'" `
+	QuizID string `path:"quizID,required" vd:"regexp('^\\w') && len($) == 24;  msg:'quizID haruslah a-z,A-Z,0-9'" `
 }
 
 type quizRes struct {
@@ -221,7 +225,42 @@ func (h *QuizHandler) GetQuizDetail(ctx context.Context, c *app.RequestContext) 
 	}
 	quizDetail.Questions = []domain.Question{}
 	c.JSON(http.StatusOK, quizRes{quizDetail})
+}
 
+type userAnswerAQuestionReq struct {
+	QuizID      string `path:"quizID,required" vd:"regexp('^\\w') && len($) == 24;  msg:'quizID haruslah a-z,A-Z,0-9 dan panjang haruslah 24'"`
+	QuestionID  string `path:"questionID,required" vd:"regexp('^\\w') && len($) == 24;  msg:'questionID haruslah a-z,A-Z,0-9 dan panjang haruslah 24'"`
+	ChoiceID    string `json:"choiceID" vd:"regexp('^\\w') && len($) == 24;  msg:'questionID haruslah a-z,A-Z,0-9 dan panjang haruslah 24'" `
+	EssayAnswer string `json:"essayAnswer" vd:" ;msg:'essay answer harus anda isi gan'"`
+}
+
+type userAnswerAQuestionRes struct {
+	Message   string `json:"message"`
+	IsCorrect bool   `json:"isCorrect"`
+}
+
+func (h *QuizHandler) UserAnswerAQuestion(ctx context.Context, c *app.RequestContext) {
+	var req userAnswerAQuestionReq
+	err := c.BindAndValidate(&req)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, ResponseError{Message: err.Error()})
+		return
+	}
+	userID, _ := c.Get("userID")
+
+	isCorrect, err := h.questionSvc.UserAnswerAQuestion(ctx, req.QuizID, req.QuestionID, req.ChoiceID, req.EssayAnswer, userID.(string))
+	if err != nil {
+		c.JSON(getStatusCode(err), ResponseError{Message: err.Error()})
+		return
+	}
+	var resMessage string
+	if isCorrect {
+		resMessage = "congrats ma bro, your answer is correct "
+	} else {
+		resMessage = "Sorry ma bro, your answer is wrong "
+
+	}
+	c.JSON(http.StatusOK, userAnswerAQuestionRes{Message: resMessage, IsCorrect: isCorrect})
 }
 
 func getStatusCode(err error) int {

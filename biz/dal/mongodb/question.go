@@ -3,11 +3,12 @@ package mongodb
 import (
 	"context"
 
+	"ququiz/lintang/quiz-query-service/biz/domain"
+
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
-	"ququiz/lintang/quiz-query-service/biz/domain"
 )
 
 type QuestionRepository struct {
@@ -125,6 +126,70 @@ func (r *QuestionRepository) GetUserAnswerInAQuiz(ctx context.Context, quizID st
 	}
 
 	return questionsWithUserAnswer, nil
+}
+
+func (r *QuestionRepository) IsUserAnswerCorrect(ctx context.Context, quizID string, questionID string,
+	userChoiceID string, userEssayAnswer string) (bool, domain.CorrectAnswer, error) {
+	coll := r.db.Collection("base_quiz")
+	quizIDObjectID, err := primitive.ObjectIDFromHex(quizID)
+	if err != nil {
+		zap.L().Error("primitive.ObjectIDFromHex (quizIDObjectID) (IsUserAnswerCorrect) (QuestionRepository)", zap.Error(err))
+		return false, domain.CorrectAnswer{}, err
+	}
+
+	questionObjectID, err := primitive.ObjectIDFromHex(questionID)
+	if err != nil {
+		zap.L().Error("primitive.ObjectIDFromHex (quizIDObjectID) (IsUserAnswerCorrect) (QuestionRepository)", zap.Error(err))
+		return false, domain.CorrectAnswer{}, err
+	}
+
+	matchQuizID := bson.D{
+		{"$match", bson.D{
+			{"_id", quizIDObjectID},
+		}},
+	}
+
+	unwindQuestion := bson.D{
+
+		{"$unwind", bson.D{
+			{"path", "$questions"},
+		}},
+	}
+
+	matchQuestion := bson.D{
+		{"$match", bson.D{
+			{"questions._id", questionObjectID},
+		}},
+	}
+
+	cursor, err := coll.Aggregate(ctx, mongo.Pipeline{matchQuizID, unwindQuestion, matchQuestion})
+	if err != nil {
+		zap.L().Error("coll.Aggregate (GetUserAnswerInAQuiz) (QuestionRepository)", zap.Error(err))
+		return false, domain.CorrectAnswer{}, err
+	}
+
+	var question domain.Question
+	if err := cursor.Decode(&question); err != nil {
+		zap.L().Error("cursor.All (GetUserAnswerInAQuiz) (QuestionRepository)", zap.Error(err))
+		return false, domain.CorrectAnswer{}, err
+	}
+	correctAnswer := domain.CorrectAnswer{
+		Weight: uint64(question.Weight),
+		QuizID: quizID,
+	}
+
+	if question.Type == domain.ESSAY {
+
+		return question.CorrectAnswer == userEssayAnswer, correctAnswer, nil
+	} else {
+		var correctChoiceID string
+		for i := 0; i < len(question.Choices); i++ {
+			if question.Choices[i].IsCorrect {
+				correctChoiceID = question.Choices[i].ID.Hex()
+			}
+		}
+		return correctChoiceID == userChoiceID, correctAnswer, nil
+	}
 
 }
 

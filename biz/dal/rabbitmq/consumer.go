@@ -32,12 +32,12 @@ func (r *RabbitMQConsumer) ListenAndServe() error {
 	err = r.rmq.Channel.QueueBind(
 		queue.Name,
 		"delete-cache",
-		"scoring-query-read",
+		"scoring-quiz-query",
 		false,
 		nil,
 	)
 	if err != nil {
-		zap.L().Fatal(fmt.Sprintf("cant bind queue %s to exchange scoring-query-read", queue.Name))
+		zap.L().Fatal(fmt.Sprintf("cant bind queue %s to exchange scoring-quiz-query", queue.Name))
 	}
 	msgs, err := r.rmq.Channel.Consume(
 		queue.Name,

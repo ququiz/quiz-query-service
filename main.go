@@ -8,13 +8,6 @@ import (
 	"net"
 	"time"
 
-	"github.com/bytedance/gopkg/util/gopool"
-	"github.com/cloudwego/hertz/pkg/app/server"
-	"github.com/cloudwego/hertz/pkg/common/hlog"
-	"github.com/cloudwego/hertz/pkg/route"
-	"github.com/cloudwego/kitex/pkg/transmeta"
-	"github.com/hertz-contrib/pprof"
-	_ "go.uber.org/automaxprocs"
 	"ququiz/lintang/quiz-query-service/biz/dal/mongodb"
 	"ququiz/lintang/quiz-query-service/biz/dal/rabbitmq"
 	rediscache "ququiz/lintang/quiz-query-service/biz/dal/redisCache"
@@ -25,6 +18,14 @@ import (
 	"ququiz/lintang/quiz-query-service/kitex_gen/quiz-query-service/pb/quizqueryservice"
 	"ququiz/lintang/quiz-query-service/pkg"
 	"ququiz/lintang/quiz-query-service/rpc"
+
+	"github.com/bytedance/gopkg/util/gopool"
+	"github.com/cloudwego/hertz/pkg/app/server"
+	"github.com/cloudwego/hertz/pkg/common/hlog"
+	"github.com/cloudwego/hertz/pkg/route"
+	"github.com/cloudwego/kitex/pkg/transmeta"
+	"github.com/hertz-contrib/pprof"
+	_ "go.uber.org/automaxprocs"
 
 	kitexServer "github.com/cloudwego/kitex/server"
 )
@@ -63,8 +64,12 @@ func main() {
 	consumer := rabbitmq.NewRabbitMQConsumer(rmq)
 	err = consumer.ListenAndServe()
 
+	// rabbtimq consumer producer
+	quizCommandProd := rabbitmq.NewQuizCommandServiceProducerMQ(rmq)
+	scoringProd := rabbitmq.NewScoringServiceProducerMQ(rmq)
+
 	// service
-	questionService := service.NewQuestionService(questionRepo, cacheRepo, quizRepo)
+	questionService := service.NewQuestionService(questionRepo, cacheRepo, quizRepo, scoringProd, quizCommandProd)
 	quizService := service.NewQuizService(quizRepo)
 
 	// router

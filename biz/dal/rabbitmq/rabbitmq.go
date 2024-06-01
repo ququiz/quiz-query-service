@@ -1,9 +1,10 @@
 package rabbitmq
 
 import (
+	"ququiz/lintang/quiz-query-service/config"
+
 	"github.com/streadway/amqp"
 	"go.uber.org/zap"
-	"ququiz/lintang/quiz-query-service/config"
 )
 
 type RabbitMQ struct {
@@ -28,7 +29,20 @@ func NewRabbitMQ(cfg *config.Config) *RabbitMQ {
 	}
 
 	err = channel.ExchangeDeclare(
-		"monitor-billing",
+		"scoring-quiz-query",
+		"topic",
+		true,
+		false,
+		false,
+		false,
+		nil,
+	)
+	if err != nil {
+		zap.L().Fatal("err: channel.ExchangeDeclare : " + err.Error())
+	}
+
+	err = channel.ExchangeDeclare(
+		"quiz-command-quiz-query",
 		"topic",
 		true,
 		false,
