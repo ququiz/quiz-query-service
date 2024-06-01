@@ -1,6 +1,10 @@
 package domain
 
-import "go.mongodb.org/mongo-driver/bson/primitive"
+import (
+	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
 
 type Question struct {
 	ID            primitive.ObjectID `bson:"_id" json:"id"`
@@ -12,8 +16,14 @@ type Question struct {
 	UserAnswers   []UserAnswer       `json:"user_answers" bson:"user_answers"`
 }
 
-
-
-
-
-
+type BaseQuizWithOneQuestionAggregate struct {
+	ID           primitive.ObjectID `bson:"_id" json:"id"`
+	Name         string             `json:"name" bson:"name"`
+	CreatorID    string             `json:"creator_id" bson:"creator_id"`
+	Passcode     string             `json:"passcode" bson:"passcode"`
+	StartTime    time.Time          `json:"start_time" bson:"start_time"`
+	EndTime      time.Time          `json:"end_time" bson:"end_time"`
+	Questions    Question           `json:"questions" bson:"questions"`
+	Participants []Participant      `json:"participants"  bson:"participants"`
+	Status       QuizStatus         `json:"quiz_status" bson:"quiz_status"`
+}

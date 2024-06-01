@@ -3,11 +3,12 @@ package rpc
 import (
 	"context"
 
+	"ququiz/lintang/quiz-query-service/biz/service"
+	pb "ququiz/lintang/quiz-query-service/kitex_gen/quiz-query-service/pb"
+
 	"github.com/cloudwego/kitex/pkg/remote/trans/nphttp2/codes"
 	"github.com/cloudwego/kitex/pkg/remote/trans/nphttp2/status"
 	"go.uber.org/zap"
-	"ququiz/lintang/quiz-query-service/biz/service"
-	pb "ququiz/lintang/quiz-query-service/kitex_gen/quiz-query-service/pb"
 )
 
 // QuizQueryServiceImpl implements the last service interface defined in the IDL.
@@ -26,22 +27,22 @@ func NewQuizService(qs service.QuestionRepository, quiz service.QuizRepository) 
 // GetQuestionDetail implements the QuizQueryServiceImpl interface.
 func (s *QuizQueryServiceImpl) GetQuestionDetail(ctx context.Context, req *pb.GetQuestionReq) (resp *pb.GetQuestionRes, err error) {
 	// TODO: Your code here...
-	questionDetail, err := s.questionRepo.GetQuestionByIDAndQuizID(ctx, req.QuizId, req.QuestionId)
+	quiz, err := s.questionRepo.GetQuestionByIDAndQuizID(ctx, req.QuizId, req.QuestionId)
 	if err != nil {
-		zap.L().Error("s.questionRepo.GetQuestionByIDAndQuizID (GetQuestionDetail) (QuizQueryGrpcService)", zap.Error(err))
+		zap.L().Error("s.questionRepo.GetQuestionByIDAndQuizID (Getquiz) (QuizQueryGrpcService)", zap.Error(err))
 		return nil, status.Errorf(codes.NotFound, "question with id %s not found in quiz %s", req.QuestionId, req.QuizId)
 	}
 
 	var correctChoiceID string
-	for i := 0; i < len(questionDetail.Choices); i++ {
-		if questionDetail.Choices[i].IsCorrect {
-			correctChoiceID = questionDetail.Choices[i].ID.Hex()
+	for i := 0; i < len(quiz.Questions.Choices); i++ {
+		if quiz.Questions.Choices[i].IsCorrect {
+			correctChoiceID = quiz.Questions.Choices[i].ID.Hex()
 		}
 	}
 	resp.CorrectChoiceId = correctChoiceID
 	res := &pb.GetQuestionRes{
-		Weight:               uint64(questionDetail.Weight),
-		CorrectEssayAnswerId: questionDetail.CorrectAnswer,
+		Weight:               uint64(quiz.Questions.Weight),
+		CorrectEssayAnswerId: quiz.Questions.CorrectAnswer,
 		CorrectChoiceId:      correctChoiceID,
 	}
 

@@ -14,7 +14,7 @@ type QuestionRepository interface {
 	GetAllByQuiz(ctx context.Context, quizID string) ([]domain.BaseQuizWithQuestionAggregate, error)
 	GetUserAnswerInAQuiz(ctx context.Context, quizID string, userID string) ([]domain.QuestionWithUserAnswerAggregate, error)
 	Get(ctx context.Context, questionID string) (domain.Question, error)
-	GetQuestionByIDAndQuizID(ctx context.Context, quizID string, questionID string) (domain.Question, error)
+	GetQuestionByIDAndQuizID(ctx context.Context, quizID string, questionID string) (domain.BaseQuizWithOneQuestionAggregate, error)
 	IsUserAnswerCorrect(ctx context.Context, quizID string, questionID string,
 		userChoiceID string, userEssayAnswer string) (bool, domain.CorrectAnswer, error)
 }
@@ -64,8 +64,8 @@ func (s *QuestionService) GetAllByQuiz(ctx context.Context, quizID string, userI
 	now := time.Now()
 	quizEndTime := quiz.EndTime
 	if now.Unix() > quizEndTime.Unix() {
-		zap.L().Debug(fmt.Sprintf("user %s not allowed to access quiz %s karena waktu saat ini sudah melewati end time quiz", userID, quizID))
-		return []domain.Question{}, domain.WrapErrorf(err, domain.ErrBadParamInput, fmt.Sprintf("user %s not allowed to access quiz %s karena waktu saat ini sudah melewati end time quiz", userID, quizID))
+		zap.L().Debug(fmt.Sprintf("user %s not allowed to access quiz %s quiz sudah selesai", userID, quizID))
+		return []domain.Question{}, domain.WrapErrorf(err, domain.ErrBadParamInput, fmt.Sprintf("user %s not allowed to access quiz %s quiz sudah selesai", userID, quizID))
 	}
 
 	var questions []domain.Question
@@ -146,7 +146,7 @@ func (s *QuestionService) GetUserAnswers(ctx context.Context, quizID string, use
 }
 
 func (s *QuestionService) UserAnswerAQuestion(ctx context.Context, quizID string, questionID string,
-	userChoiceID string, userEssayAnswer string, userID string, username string ) (bool, error) {
+	userChoiceID string, userEssayAnswer string, userID string, username string) (bool, error) {
 	isCorrect, correctAnswer, err := s.questionRepo.IsUserAnswerCorrect(ctx, quizID, questionID, userChoiceID, userEssayAnswer)
 	if err != nil {
 

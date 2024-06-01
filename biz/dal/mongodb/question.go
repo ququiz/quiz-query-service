@@ -164,28 +164,28 @@ func (r *QuestionRepository) IsUserAnswerCorrect(ctx context.Context, quizID str
 
 	cursor, err := coll.Aggregate(ctx, mongo.Pipeline{matchQuizID, unwindQuestion, matchQuestion})
 	if err != nil {
-		zap.L().Error("coll.Aggregate (GetUserAnswerInAQuiz) (QuestionRepository)", zap.Error(err))
+		zap.L().Error("coll.Aggregate (IsUserAnswerCorrect) (QuestionRepository)", zap.Error(err))
 		return false, domain.CorrectAnswer{}, err
 	}
 
-	var question domain.Question
-	if err := cursor.Decode(&question); err != nil {
-		zap.L().Error("cursor.All (GetUserAnswerInAQuiz) (QuestionRepository)", zap.Error(err))
+	var quiz domain.BaseQuizWithOneQuestionAggregate
+	if err := cursor.Decode(&quiz); err != nil {
+		zap.L().Error("cursor.All (IsUserAnswerCorrect) (QuestionRepository)", zap.Error(err))
 		return false, domain.CorrectAnswer{}, err
 	}
 	correctAnswer := domain.CorrectAnswer{
-		Weight: uint64(question.Weight),
+		Weight: uint64(quiz.Questions.Weight),
 		QuizID: quizID,
 	}
 
-	if question.Type == domain.ESSAY {
+	if quiz.Questions.Type == domain.ESSAY {
 
-		return question.CorrectAnswer == userEssayAnswer, correctAnswer, nil
+		return quiz.Questions.CorrectAnswer == userEssayAnswer, correctAnswer, nil
 	} else {
 		var correctChoiceID string
-		for i := 0; i < len(question.Choices); i++ {
-			if question.Choices[i].IsCorrect {
-				correctChoiceID = question.Choices[i].ID.Hex()
+		for i := 0; i < len(quiz.Questions.Choices); i++ {
+			if quiz.Questions.Choices[i].IsCorrect {
+				correctChoiceID = quiz.Questions.Choices[i].ID.Hex()
 			}
 		}
 		return correctChoiceID == userChoiceID, correctAnswer, nil
@@ -193,18 +193,18 @@ func (r *QuestionRepository) IsUserAnswerCorrect(ctx context.Context, quizID str
 
 }
 
-func (r *QuestionRepository) GetQuestionByIDAndQuizID(ctx context.Context, quizID string, questionID string) (domain.Question, error) {
+func (r *QuestionRepository) GetQuestionByIDAndQuizID(ctx context.Context, quizID string, questionID string) (domain.BaseQuizWithOneQuestionAggregate, error) {
 	coll := r.db.Collection("base_quiz")
 	quizIDObjectID, err := primitive.ObjectIDFromHex(quizID)
 	if err != nil {
 		zap.L().Error("primitive.ObjectIDFromHex (quizIDObjectID) (GetUserAnswerInAQuiz) (QuestionRepository)", zap.Error(err))
-		return domain.Question{}, err
+		return domain.BaseQuizWithOneQuestionAggregate{}, err
 	}
 
 	questionObjectID, err := primitive.ObjectIDFromHex(questionID)
 	if err != nil {
 		zap.L().Error("primitive.ObjectIDFromHex (quizIDObjectID) (GetUserAnswerInAQuiz) (QuestionRepository)", zap.Error(err))
-		return domain.Question{}, err
+		return domain.BaseQuizWithOneQuestionAggregate{}, err
 	}
 
 	matchQuizID := bson.D{
@@ -229,13 +229,13 @@ func (r *QuestionRepository) GetQuestionByIDAndQuizID(ctx context.Context, quizI
 	cursor, err := coll.Aggregate(ctx, mongo.Pipeline{matchQuizID, unwindQuestion, matchQuestion})
 	if err != nil {
 		zap.L().Error("coll.Aggregate (GetUserAnswerInAQuiz) (QuestionRepository)", zap.Error(err))
-		return domain.Question{}, err
+		return domain.BaseQuizWithOneQuestionAggregate{}, err
 	}
 
-	var question domain.Question
+	var question domain.BaseQuizWithOneQuestionAggregate
 	if err := cursor.Decode(&question); err != nil {
 		zap.L().Error("cursor.All (GetUserAnswerInAQuiz) (QuestionRepository)", zap.Error(err))
-		return domain.Question{}, err
+		return domain.BaseQuizWithOneQuestionAggregate{}, err
 	}
 
 	return question, nil
