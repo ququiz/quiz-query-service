@@ -29,7 +29,7 @@ type ScoringSvcProducerMQ interface {
 }
 
 type QuizCommandProducerMQ interface {
-	SendCorrectAnswerToQuizCommandService(ctx context.Context, userAnswerMsg domain.UserAnswer) error
+	SendCorrectAnswerToQuizCommandService(ctx context.Context, userAnswerMsg domain.UserAnswerMQ) error
 }
 
 type QuestionService struct {
@@ -165,10 +165,12 @@ func (s *QuestionService) UserAnswerAQuestion(ctx context.Context, quizID string
 	// jika jawaban salah ya gak usah kirim ke scoring service, karan skor user akan sama (gak ditambah sama sekali)..
 
 	// send mesage to quiz-command-service mau jawaban user benar/salah, buat insert jawaban user ke database
-	err = s.quizCommandProducerMQ.SendCorrectAnswerToQuizCommandService(ctx, domain.UserAnswer{
+	err = s.quizCommandProducerMQ.SendCorrectAnswerToQuizCommandService(ctx, domain.UserAnswerMQ{
 		ChoiceID:      userChoiceID,
 		ParticipantID: userID,
 		Answer:        userEssayAnswer,
+		QuizID:        quizID,
+		QuestionID:    questionID,
 	})
 
 	if err != nil {

@@ -21,7 +21,7 @@ func NewQuizCommandServiceProducerMQ(rmq *RabbitMQ) *QuizCommandServiceProducerM
 	}
 }
 
-func (s *QuizCommandServiceProducerMQ) SendCorrectAnswerToQuizCommandService(ctx context.Context, userAnswerMsg domain.UserAnswer) error {
+func (s *QuizCommandServiceProducerMQ) SendCorrectAnswerToQuizCommandService(ctx context.Context, userAnswerMsg domain.UserAnswerMQ) error {
 	return s.publishToQuizCommandSvc(ctx, "user-answer", userAnswerMsg)
 }
 
