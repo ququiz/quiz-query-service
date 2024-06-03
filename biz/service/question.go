@@ -147,6 +147,7 @@ func (s *QuestionService) GetUserAnswers(ctx context.Context, quizID string, use
 
 func (s *QuestionService) UserAnswerAQuestion(ctx context.Context, quizID string, questionID string,
 	userChoiceID string, userEssayAnswer string, userID string, username string) (bool, error) {
+		
 	isCorrect, correctAnswer, err := s.questionRepo.IsUserAnswerCorrect(ctx, quizID, questionID, userChoiceID, userEssayAnswer)
 	if err != nil {
 

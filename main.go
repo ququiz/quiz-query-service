@@ -28,6 +28,7 @@ import (
 	"github.com/hertz-contrib/logger/accesslog"
 	"github.com/hertz-contrib/pprof"
 	_ "go.uber.org/automaxprocs"
+	"go.uber.org/zap"
 
 	kitexServer "github.com/cloudwego/kitex/server"
 )
@@ -43,6 +44,7 @@ func main() {
 	defer logsCores.Sync()
 	hlog.SetLogger(logsCores)
 
+	zap.L().Debug(fmt.Sprint(`0.0.0.0:%s`, cfg.HTTP.Port))
 	h := server.Default(
 		server.WithHostPorts(fmt.Sprintf(`0.0.0.0:%s`, cfg.HTTP.Port)),
 		server.WithExitWaitTime(4*time.Second),

@@ -31,6 +31,7 @@ func (r *QuestionRepository) Get(ctx context.Context, questionID string) (domain
 	cursor := coll.FindOne(ctx, filterByID)
 
 	var question domain.Question
+	
 	if err := cursor.Decode(&question); err != nil {
 		zap.L().Error("cursor.Decode (Get) (ContainerRepository), ", zap.Error(err))
 		return domain.Question{}, err
@@ -168,24 +169,25 @@ func (r *QuestionRepository) IsUserAnswerCorrect(ctx context.Context, quizID str
 		return false, domain.CorrectAnswer{}, err
 	}
 
-	var quiz domain.BaseQuizWithOneQuestionAggregate
-	if err := cursor.Decode(&quiz); err != nil {
+	var quiz []domain.BaseQuizWithOneQuestionAggregate
+	
+	if err := cursor.All(ctx, &quiz); err != nil {
 		zap.L().Error("cursor.All (IsUserAnswerCorrect) (QuestionRepository)", zap.Error(err))
 		return false, domain.CorrectAnswer{}, err
 	}
 	correctAnswer := domain.CorrectAnswer{
-		Weight: uint64(quiz.Questions.Weight),
+		Weight: uint64(quiz[0].Questions.Weight),
 		QuizID: quizID,
 	}
 
-	if quiz.Questions.Type == domain.ESSAY {
+	if quiz[0].Questions.Type == domain.ESSAY {
 
-		return quiz.Questions.CorrectAnswer == userEssayAnswer, correctAnswer, nil
+		return quiz[0].Questions.CorrectAnswer == userEssayAnswer, correctAnswer, nil
 	} else {
 		var correctChoiceID string
-		for i := 0; i < len(quiz.Questions.Choices); i++ {
-			if quiz.Questions.Choices[i].IsCorrect {
-				correctChoiceID = quiz.Questions.Choices[i].ID.Hex()
+		for i := 0; i < len(quiz[0].Questions.Choices); i++ {
+			if quiz[0].Questions.Choices[i].IsCorrect {
+				correctChoiceID = quiz[0].Questions.Choices[i].ID.Hex()
 			}
 		}
 		return correctChoiceID == userChoiceID, correctAnswer, nil
@@ -233,7 +235,7 @@ func (r *QuestionRepository) GetQuestionByIDAndQuizID(ctx context.Context, quizI
 	}
 
 	var question domain.BaseQuizWithOneQuestionAggregate
-	if err := cursor.Decode(&question); err != nil {
+	if err := cursor.All(ctx, &question); err != nil {
 		zap.L().Error("cursor.All (GetUserAnswerInAQuiz) (QuestionRepository)", zap.Error(err))
 		return domain.BaseQuizWithOneQuestionAggregate{}, err
 	}
