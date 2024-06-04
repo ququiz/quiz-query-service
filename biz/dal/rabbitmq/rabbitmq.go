@@ -41,16 +41,16 @@ func NewRabbitMQ(cfg *config.Config) *RabbitMQ {
 		zap.L().Fatal("err: channel.ExchangeDeclare : " + err.Error())
 	}
 
-	_, err = channel.QueueDeclare(
+	channel.QueueDeclare(
 		"scoringQuizQueryQueue", // name
-		false,                   // durable
+		true,                   // durable
 		false,                   // delete when unused
 		true,                    // exclusive
 		false,                   // no-wait
 		nil,                     // arguments
 	)
 	if err != nil {
-		zap.L().Fatal("err: channel.QuueeDeclare(userAnswerQueue) : " + err.Error())
+		zap.L().Info("err: channel.QuueeDeclare(scoringQuizQueryQueue) : " + err.Error())
 
 	}
 
@@ -67,17 +67,16 @@ func NewRabbitMQ(cfg *config.Config) *RabbitMQ {
 		zap.L().Fatal("err: channel.ExchangeDeclare : " + err.Error())
 	}
 
-	_, err = channel.QueueDeclare(
+	channel.QueueDeclare(
 		"userAnswerQueue", // name
-		false,             // durable
+		true,             // durable
 		false,             // delete when unused
 		true,              // exclusive
 		false,             // no-wait
 		nil,               // arguments
 	)
 	if err != nil {
-		zap.L().Fatal("err: channel.QuueeDeclare(userAnswerQueue) : " + err.Error())
-
+		zap.L().Info("err: channel.QuueeDeclare(userAnswerQueue) : " + err.Error())
 	}
 
 	err = channel.Qos(

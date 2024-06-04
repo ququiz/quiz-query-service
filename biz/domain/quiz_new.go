@@ -29,7 +29,7 @@ type BaseQuiz struct {
 	EndTime      time.Time          `json:"end_time" bson:"end_time"`
 	Questions    []Question         `json:"questions" bson:"questions"`
 	Participants []Participant      `json:"participants"  bson:"participants"`
-	Status       QuizStatus         `json:"quiz_status" bson:"quiz_status"`
+	Status       QuizStatus         `json:"quiz_status" bson:"status"`
 }
 
 type QuestionType string
@@ -62,7 +62,7 @@ type BaseQuizWithQuestionAggregate struct {
 	EndTime      time.Time            `json:"end_time" bson:"end_time"`
 	Questions    []Question           `json:"questions" bson:"questions"`
 	Participants []Participant `json:"participants"  bson:"participants"`
-	Status       QuizStatus           `json:"quiz_status" bson:"quiz_status"`
+	Status       QuizStatus           `json:"quiz_status" bson:"status"`
 }
 
 type QuestionWithUserAnswerAggregate struct {
@@ -94,5 +94,5 @@ type BaseQuizIsParticipant struct {
 	EndTime      time.Time          `json:"end_time" bson:"end_time"`
 	Questions    []Question         `json:"questions" bson:"questions"`
 	Participants Participant      `json:"participants"  bson:"participants"`
-	Status       QuizStatus         `json:"quiz_status" bson:"quiz_status"`
+	Status       QuizStatus         `json:"quiz_status" bson:"status"`
 }

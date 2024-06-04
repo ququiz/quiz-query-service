@@ -4,11 +4,12 @@ import (
 	"context"
 	"fmt"
 
+	"ququiz/lintang/quiz-query-service/biz/domain"
+
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
-	"ququiz/lintang/quiz-query-service/biz/domain"
 )
 
 type QuizRepository struct {
@@ -110,4 +111,59 @@ func (r *QuizRepository) IsUserQuizParticipant(ctx context.Context, quizID strin
 	}
 
 	return participant, nil
+}
+
+func (r *QuizRepository) GetAllQuizByCreatorID(ctx context.Context, creatorID string) ([]domain.BaseQuiz, error) {
+	coll := r.db.Collection("base_quiz")
+	filterQuiz := bson.D{
+
+		{"creator_id", creatorID},
+	}
+
+	var quizs []domain.BaseQuiz
+	cursor, err := coll.Find(ctx, filterQuiz)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+
+			return []domain.BaseQuiz{}, domain.WrapErrorf(err, domain.ErrNotFound, fmt.Sprintf(`you havent create any quiz`, creatorID))
+		}
+
+		zap.L().Error("cursor.ALl()(IsUserQuizParticipant) (QuizRepository) ", zap.Error(err))
+		return []domain.BaseQuiz{}, err
+	}
+
+	if err := cursor.All(ctx, &quizs); err != nil {
+		zap.L().Error("cursor.ALl()(IsUserQuizParticipant) (QuizRepository) ", zap.Error(err))
+		return []domain.BaseQuiz{}, err
+	}
+
+	return quizs, nil
+}
+
+func (r *QuizRepository) GetQuizHistory(ctx context.Context, participantID string) ([]domain.BaseQuizIsParticipant, error) {
+	unwindParticipant := bson.D{
+		{"$unwind", bson.D{
+			{"path", "$participants"},
+		}},
+	}
+	filterParticipant := bson.D{
+		{"$match", bson.D{
+			{"participants.user_id", participantID},
+		}},
+	}
+
+	coll := r.db.Collection("base_quiz")
+	cursor, err := coll.Aggregate(ctx, mongo.Pipeline{unwindParticipant, filterParticipant})
+	if err != nil {
+		zap.L().Error("coll.Aggregat (IsUserQuizParticipant) (QuizRepository)", zap.Error(err))
+		return []domain.BaseQuizIsParticipant{}, err
+	}
+
+	var quizs []domain.BaseQuizIsParticipant
+
+	if err := cursor.All(ctx, &quizs); err != nil {
+		zap.L().Error("cursor.ALl()(IsUserQuizParticipant) (QuizRepository) ", zap.Error(err))
+		return []domain.BaseQuizIsParticipant{}, err
+	}
+	return quizs, nil
 }

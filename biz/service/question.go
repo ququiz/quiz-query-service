@@ -47,10 +47,13 @@ func NewQuestionService(questionRepo QuestionRepository, cachedQsRepo CachedQsRe
 }
 
 func (s *QuestionService) GetAllByQuiz(ctx context.Context, quizID string, userID string) ([]domain.Question, error) {
-	// err := s.QuizRepo.IsUserQuizParticipant(ctx, quizID, userID)
-	// if err != nil {
-	// 	return []domain.Question{}, domain.WrapErrorf(err, domain.ErrUnauthorized,  "you are not authorized")
-	// }
+	participants, err := s.quizRepo.IsUserQuizParticipant(ctx, quizID, userID)
+	if err != nil {
+		return []domain.Question{}, domain.WrapErrorf(err, domain.ErrInternalServerError, domain.MessageInternalServerError)
+	}
+	if len(participants) == 0 {
+		return []domain.Question{}, domain.WrapErrorf(err, domain.ErrBadParamInput, fmt.Sprintf("maaf anda bukan participant dari quiz ini :)"))
+	}
 
 	quiz, err := s.quizRepo.Get(ctx, quizID)
 	// nilQuiz := domain.BaseQuiz{
@@ -147,7 +150,14 @@ func (s *QuestionService) GetUserAnswers(ctx context.Context, quizID string, use
 
 func (s *QuestionService) UserAnswerAQuestion(ctx context.Context, quizID string, questionID string,
 	userChoiceID string, userEssayAnswer string, userID string, username string) (bool, error) {
-		
+
+	participants, err := s.quizRepo.IsUserQuizParticipant(ctx, quizID, userID)
+	if err != nil {
+		return false, err
+	}
+	if len(participants) == 0 {
+		return false, domain.WrapErrorf(err, domain.ErrBadParamInput, fmt.Sprintf("maaf anda bukan participant dari quiz ini"))
+	}
 	isCorrect, correctAnswer, err := s.questionRepo.IsUserAnswerCorrect(ctx, quizID, questionID, userChoiceID, userEssayAnswer)
 	if err != nil {
 

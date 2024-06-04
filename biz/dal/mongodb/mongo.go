@@ -43,3 +43,5 @@ func NewMongo(cfg *config.Config) *Mongodb {
 func (db *Mongodb) Close(ctx context.Context) {
 	db.Conn.Client().Disconnect(ctx)
 }
+
+

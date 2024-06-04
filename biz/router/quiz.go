@@ -17,6 +17,8 @@ import (
 type QuizService interface {
 	GetAll(ctx context.Context) ([]domain.BaseQuiz, error)
 	Get(ctx context.Context, quizID string) (domain.BaseQuiz, error)
+	GetQuizByCreatorID(ctx context.Context, creatorID string) ([]domain.BaseQuiz, error)
+	GetQuizHistory(ctx context.Context, participantID string) ([]domain.BaseQuizIsParticipant, error)
 }
 
 type QuestionService interface {
@@ -51,6 +53,9 @@ func QuizRouter(r *server.Hertz, q QuizService, questionSvc QuestionService) {
 
 			qH.GET("/:quizID/result", append(middleware.Protected(), handler.GetUserAnswer)...)
 			qH.POST("/:quizID/questions/:questionID/answer", append(middleware.Protected(), handler.UserAnswerAQuestion)...)
+
+			qH.GET("/mine", append(middleware.Protected(), handler.GetCreatedQuiz)...)
+			qH.GET("/history", append(middleware.Protected(), handler.GetQuizHistory)...)
 
 		}
 	}
@@ -261,6 +266,51 @@ func (h *QuizHandler) UserAnswerAQuestion(ctx context.Context, c *app.RequestCon
 
 	}
 	c.JSON(http.StatusOK, userAnswerAQuestionRes{Message: resMessage, IsCorrect: isCorrect})
+}
+
+func (h *QuizHandler) GetCreatedQuiz(ctx context.Context, c *app.RequestContext) {
+	userID, _ := c.Get("userID")
+	quizs, err := h.svc.GetQuizByCreatorID(ctx, userID.(string))
+	var resp []listQuizResp
+	for _, quiz := range quizs {
+		resp = append(resp, listQuizResp{
+			ID:        quiz.ID,
+			Name:      quiz.Name,
+			CreatorID: quiz.CreatorID,
+			Passcode:  quiz.Passcode,
+			StartTime: quiz.StartTime,
+			EndTime:   quiz.EndTime,
+			Status:    quiz.Status,
+		})
+	}
+	if err != nil {
+		c.JSON(getStatusCode(err), ResponseError{Message: err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, resp)
+}
+
+func (h *QuizHandler) GetQuizHistory(ctx context.Context, c *app.RequestContext) {
+	userID, _ := c.Get("userID")
+	quizs, err := h.svc.GetQuizHistory(ctx, userID.(string))
+	var resp []listQuizResp
+	for _, quiz := range quizs {
+		resp = append(resp, listQuizResp{
+			ID:        quiz.ID,
+			Name:      quiz.Name,
+			CreatorID: quiz.CreatorID,
+			Passcode:  quiz.Passcode,
+			StartTime: quiz.StartTime,
+			EndTime:   quiz.EndTime,
+			Status:    domain.QuizStatus(quiz.Status),
+		})
+	}
+	if err != nil {
+		c.JSON(getStatusCode(err), ResponseError{Message: err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, resp)
+
 }
 
 func getStatusCode(err error) int {
