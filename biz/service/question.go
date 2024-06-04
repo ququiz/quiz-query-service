@@ -12,11 +12,14 @@ import (
 
 type QuestionRepository interface {
 	GetAllByQuiz(ctx context.Context, quizID string) ([]domain.BaseQuizWithQuestionAggregate, error)
-	GetUserAnswerInAQuiz(ctx context.Context, quizID string, userID string) ([]domain.QuestionWithUserAnswerAggregate, error)
+	GetUserAnswerInAQuiz(ctx context.Context, quizID string, userID string) ([]domain.QuestionUserAnswer, error)
 	Get(ctx context.Context, questionID string) (domain.Question, error)
 	GetQuestionByIDAndQuizID(ctx context.Context, quizID string, questionID string) (domain.BaseQuizWithOneQuestionAggregate, error)
 	IsUserAnswerCorrect(ctx context.Context, quizID string, questionID string,
 		userChoiceID string, userEssayAnswer string) (bool, domain.CorrectAnswer, error)
+	IsUserAlreadyAnswerThisQuizID(ctx context.Context, quizID string,
+		questionID string,
+		userID string) (bool, error)
 }
 
 type CachedQsRepo interface {
@@ -61,6 +64,11 @@ func (s *QuestionService) GetAllByQuiz(ctx context.Context, quizID string, userI
 
 	if err != nil {
 		return []domain.Question{}, domain.WrapErrorf(err, domain.ErrNotFound, fmt.Sprintf("quiz with id %s not found", quizID))
+	}
+
+	// cek apakah quiz sudah dimulai
+	if time.Now().Sub(quiz.StartTime) < 0 || quiz.Status == domain.NOTSTARTED {
+		return []domain.Question{}, domain.WrapErrorf(err, domain.ErrBadParamInput, fmt.Sprintf("quiz %s belum dimulai", quizID))
 	}
 
 	// check apakah user masih allow to liat question quiznya (time.now < quiz.endTime)
@@ -131,18 +139,18 @@ func (s *QuestionService) GetAllByQuizNotCached(ctx context.Context, quizID stri
 	return questions, nil
 }
 
-func (s *QuestionService) GetUserAnswers(ctx context.Context, quizID string, userID string) ([]domain.QuestionWithUserAnswerAggregate, error) {
+func (s *QuestionService) GetUserAnswers(ctx context.Context, quizID string, userID string) ([]domain.QuestionUserAnswer, error) {
 	participants, err := s.quizRepo.IsUserQuizParticipant(ctx, quizID, userID)
 	if err != nil {
-		return []domain.QuestionWithUserAnswerAggregate{}, err
+		return []domain.QuestionUserAnswer{}, err
 	}
 	if len(participants) == 0 {
-		return []domain.QuestionWithUserAnswerAggregate{}, domain.WrapErrorf(err, domain.ErrBadParamInput, fmt.Sprintf("user %s not registered in quiz %s", userID, quizID))
+		return []domain.QuestionUserAnswer{}, domain.WrapErrorf(err, domain.ErrBadParamInput, fmt.Sprintf("user %s not registered in quiz %s", userID, quizID))
 	}
 
 	userAnswers, err := s.questionRepo.GetUserAnswerInAQuiz(ctx, quizID, userID)
 	if err != nil {
-		return []domain.QuestionWithUserAnswerAggregate{}, err
+		return []domain.QuestionUserAnswer{}, err
 	}
 
 	return userAnswers, nil
@@ -155,14 +163,25 @@ func (s *QuestionService) UserAnswerAQuestion(ctx context.Context, quizID string
 	if err != nil {
 		return false, err
 	}
+
 	if len(participants) == 0 {
 		return false, domain.WrapErrorf(err, domain.ErrBadParamInput, fmt.Sprintf("maaf anda bukan participant dari quiz ini"))
 	}
+
+
+	// cek apakah user pernah jawab pertanyaan quiz ini
+	userAlreadyAnswer, err := s.questionRepo.IsUserAlreadyAnswerThisQuizID(ctx, quizID, questionID, userID)
+	if userAlreadyAnswer { 
+		return false, domain.WrapErrorf(err, domain.ErrBadParamInput, fmt.Sprintf("kamu sebelumnya pernah menjawab pertanyaan ini"))
+	}
+
 	isCorrect, correctAnswer, err := s.questionRepo.IsUserAnswerCorrect(ctx, quizID, questionID, userChoiceID, userEssayAnswer)
 	if err != nil {
 
 		return false, err
 	}
+
+
 
 	correctAnswer.UserID = userID
 	correctAnswer.Username = username

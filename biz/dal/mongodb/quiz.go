@@ -136,7 +136,7 @@ func (r *QuizRepository) GetAllQuizByCreatorID(ctx context.Context, creatorID st
 		zap.L().Error("cursor.ALl()(IsUserQuizParticipant) (QuizRepository) ", zap.Error(err))
 		return []domain.BaseQuiz{}, err
 	}
-
+	
 	return quizs, nil
 }
 

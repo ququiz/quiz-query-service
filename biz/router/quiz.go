@@ -23,7 +23,7 @@ type QuizService interface {
 
 type QuestionService interface {
 	GetAllByQuiz(ctx context.Context, quizID string, userID string) ([]domain.Question, error)
-	GetUserAnswers(ctx context.Context, quizID string, userID string) ([]domain.QuestionWithUserAnswerAggregate, error)
+	GetUserAnswers(ctx context.Context, quizID string, userID string) ([]domain.QuestionUserAnswer, error)
 	GetAllByQuizNotCached(ctx context.Context, quizID string, userID string) ([]domain.Question, error)
 	UserAnswerAQuestion(ctx context.Context, quizID string, questionID string,
 		userChoiceID string, userEssayAnswer string, userID string, username string) (bool, error)
@@ -120,8 +120,8 @@ func (h *QuizHandler) GetQuizQuestion(ctx context.Context, c *app.RequestContext
 		c.JSON(http.StatusBadRequest, ResponseError{Message: err.Error()})
 		return
 	}
-	// userID, _ := c.Get("userID")
-	questions, err := h.questionSvc.GetAllByQuiz(ctx, req.QuizID, "tes-user")
+	userID, _ := c.Get("userID")
+	questions, err := h.questionSvc.GetAllByQuiz(ctx, req.QuizID, userID.(string))
 	if err != nil {
 		c.JSON(getStatusCode(err), ResponseError{Message: err.Error()})
 		return
@@ -147,8 +147,8 @@ func (h *QuizHandler) GetQuizQuestionNotCached(ctx context.Context, c *app.Reque
 		c.JSON(http.StatusBadRequest, ResponseError{Message: err.Error()})
 		return
 	}
-	// userID, _ := c.Get("userID")
-	questions, err := h.questionSvc.GetAllByQuizNotCached(ctx, req.QuizID, "tes-user")
+	userID, _ := c.Get("userID")
+	questions, err := h.questionSvc.GetAllByQuizNotCached(ctx, req.QuizID, userID.(string))
 	if err != nil {
 		c.JSON(getStatusCode(err), ResponseError{Message: err.Error()})
 		return
@@ -194,8 +194,8 @@ func (h *QuizHandler) GetUserAnswer(ctx context.Context, c *app.RequestContext) 
 	var res []domain.QuestionAndUserAnswer
 	for _, answer := range userAnswers {
 		res = append(res, domain.QuestionAndUserAnswer{
-			UserAnswer: answer.UserAnswer.Answer,
-			UserChoice: answer.UserAnswer.ChoiceID,
+			UserAnswer: answer.UserAnswers.Answer,
+			UserChoice: answer.UserAnswers.ChoiceID,
 			Weight:     answer.Weight,
 			Choices:    answer.Choices,
 			Type:       answer.Type,
