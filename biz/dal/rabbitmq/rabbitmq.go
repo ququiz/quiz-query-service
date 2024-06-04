@@ -41,6 +41,19 @@ func NewRabbitMQ(cfg *config.Config) *RabbitMQ {
 		zap.L().Fatal("err: channel.ExchangeDeclare : " + err.Error())
 	}
 
+	_, err = channel.QueueDeclare(
+		"scoringQuizQueryQueue", // name
+		false,                   // durable
+		false,                   // delete when unused
+		true,                    // exclusive
+		false,                   // no-wait
+		nil,                     // arguments
+	)
+	if err != nil {
+		zap.L().Fatal("err: channel.QuueeDeclare(userAnswerQueue) : " + err.Error())
+
+	}
+
 	err = channel.ExchangeDeclare(
 		"quiz-command-quiz-query",
 		"topic",
@@ -52,6 +65,19 @@ func NewRabbitMQ(cfg *config.Config) *RabbitMQ {
 	)
 	if err != nil {
 		zap.L().Fatal("err: channel.ExchangeDeclare : " + err.Error())
+	}
+
+	_, err = channel.QueueDeclare(
+		"userAnswerQueue", // name
+		false,             // durable
+		false,             // delete when unused
+		true,              // exclusive
+		false,             // no-wait
+		nil,               // arguments
+	)
+	if err != nil {
+		zap.L().Fatal("err: channel.QuueeDeclare(userAnswerQueue) : " + err.Error())
+
 	}
 
 	err = channel.Qos(
