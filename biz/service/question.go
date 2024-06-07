@@ -168,10 +168,9 @@ func (s *QuestionService) UserAnswerAQuestion(ctx context.Context, quizID string
 		return false, domain.WrapErrorf(err, domain.ErrBadParamInput, fmt.Sprintf("maaf anda bukan participant dari quiz ini"))
 	}
 
-
 	// cek apakah user pernah jawab pertanyaan quiz ini
 	userAlreadyAnswer, err := s.questionRepo.IsUserAlreadyAnswerThisQuizID(ctx, quizID, questionID, userID)
-	if userAlreadyAnswer { 
+	if userAlreadyAnswer {
 		return false, domain.WrapErrorf(err, domain.ErrBadParamInput, fmt.Sprintf("kamu sebelumnya pernah menjawab pertanyaan ini"))
 	}
 
@@ -180,8 +179,6 @@ func (s *QuestionService) UserAnswerAQuestion(ctx context.Context, quizID string
 
 		return false, err
 	}
-
-
 
 	correctAnswer.UserID = userID
 	correctAnswer.Username = username

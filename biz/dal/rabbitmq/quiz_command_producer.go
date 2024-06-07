@@ -1,9 +1,8 @@
 package rabbitmq
 
 import (
-	"bytes"
 	"context"
-	"encoding/gob"
+	"encoding/json"
 	"ququiz/lintang/quiz-query-service/biz/domain"
 	"time"
 
@@ -26,24 +25,25 @@ func (s *QuizCommandServiceProducerMQ) SendCorrectAnswerToQuizCommandService(ctx
 }
 
 func (s *QuizCommandServiceProducerMQ) publishToQuizCommandSvc(ctx context.Context, routingKey string, event interface{}) error {
-	var b bytes.Buffer
 
-	if err := gob.NewEncoder(&b).Encode(event); err != nil {
-		zap.L().Error("gob.NewEncoder(&b).Encode(event)", zap.Error(err))
+	jsonBody, err := json.Marshal(event)
+	if err != nil {
+		zap.L().Error("json.Marshal (publishToQuizCommandSvc) (quizCommandProducer)", zap.Error(err))
 		return err
 	}
-
-	err := s.ch.Publish(
+	zap.L().Info("send json serialized data to quiz command service!!")
+	err = s.ch.Publish(
 		"quiz-command-quiz-query", // exchange
 		routingKey,                // routing key
 		false,
 		false,
 		amqp.Publishing{
 			AppId:       "quiz-query-service",
-			ContentType: "application/x-encoding-gob",
-			Body:        b.Bytes(),
+			ContentType: "application/json",
+			Body:       jsonBody,
 			Timestamp:   time.Now(),
 		})
+		
 	if err != nil {
 		zap.L().Error("m.ch.Publish: ", zap.Error(err))
 		return err

@@ -24,6 +24,7 @@ type BaseQuiz struct {
 	ID           primitive.ObjectID `bson:"_id" json:"id"`
 	Name         string             `json:"name" bson:"name"`
 	CreatorID    string             `json:"creator_id" bson:"creator_id"`
+	CreatorName  string             `json:"creator_name"`
 	Passcode     string             `json:"passcode" bson:"passcode"`
 	StartTime    time.Time          `json:"start_time" bson:"start_time"`
 	EndTime      time.Time          `json:"end_time" bson:"end_time"`

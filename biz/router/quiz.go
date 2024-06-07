@@ -44,7 +44,7 @@ func QuizRouter(r *server.Hertz, q QuizService, questionSvc QuestionService) {
 	{
 		qH := root.Group("/quiz")
 		{
-			qH.GET("/", handler.GetAllQuiz)
+			qH.GET("", handler.GetAllQuiz)
 
 			qH.GET("/:quizID", handler.GetQuizDetail)
 

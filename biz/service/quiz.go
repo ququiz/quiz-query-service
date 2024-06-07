@@ -16,18 +16,42 @@ type QuizRepository interface {
 	GetQuizHistory(ctx context.Context, participantID string) ([]domain.BaseQuizIsParticipant, error)
 }
 
-type QuizService struct {
-	quizRepo QuizRepository
+type AuthGRPCClient interface {
+	GetUsersByIds(ctx context.Context, userIDs []string) ([]domain.User, error)
 }
 
-func NewQuizService(qRepo QuizRepository) *QuizService {
+type QuizService struct {
+	quizRepo   QuizRepository
+	authClient AuthGRPCClient
+}
+
+func NewQuizService(qRepo QuizRepository, a AuthGRPCClient) *QuizService {
 	return &QuizService{
 		qRepo,
+		a,
 	}
 }
 
 func (s *QuizService) GetAll(ctx context.Context) ([]domain.BaseQuiz, error) {
 	quizs, err := s.quizRepo.GetAll(ctx)
+	var userIDs []string
+	for i := 0; i < len(quizs); i++ {
+		userIDs = append(userIDs, quizs[i].CreatorID)
+	}
+	users, err := s.authClient.GetUsersByIds(ctx, userIDs)
+	if err != nil {
+		return []domain.BaseQuiz{}, err
+	}
+
+	var userIDmap map[string]string = make(map[string]string)
+	for i := 0; i < len(users); i++ {
+		userIDmap[users[i].ID] = users[i].Username
+	}
+
+	for i := 0; i < len(quizs); i++ {
+		quizs[i].CreatorName = userIDmap[quizs[i].CreatorID]
+	}
+
 	if err != nil {
 		return []domain.BaseQuiz{}, err
 	}
@@ -52,12 +76,11 @@ func (s *QuizService) GetQuizByCreatorID(ctx context.Context, creatorID string) 
 	return quizs, nil
 }
 
-
-func (s *QuizService) GetQuizHistory(ctx context.Context, participantID string) ([]domain.BaseQuizIsParticipant, error){
+func (s *QuizService) GetQuizHistory(ctx context.Context, participantID string) ([]domain.BaseQuizIsParticipant, error) {
 	quizHistory, err := s.quizRepo.GetQuizHistory(ctx, participantID)
 	if err != nil {
 		zap.L().Error(" s.quizRepo.GetQuizHistory (GetQuizHistory ) (QuizService) ")
 		return []domain.BaseQuizIsParticipant{}, err
 	}
-	return quizHistory, nil 
+	return quizHistory, nil
 }

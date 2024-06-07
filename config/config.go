@@ -42,6 +42,7 @@ type (
 
 	GRPC struct {
 		URLGrpc string `json:"urlGRPC" yaml:"urlGRPC" env:"URL_GRPC"`
+		AuthClient string `json:"AuthURLGRPC" env:"AUTH_GRPC_URL"`
 	}
 
 	Mongodb struct {
@@ -52,7 +53,7 @@ type (
 
 	Redis struct {
 		RedisAddr     string `json:"redis_addr" env:"REDIS_ADDR"`
-		RedisPassword string `json:"redis_password" env:"redis_password"`
+		RedisPassword string `json:"redis_password" env:"REDIS_PASSWORD"`
 	}
 
 	RabbitMQ struct {

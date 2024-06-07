@@ -3,8 +3,9 @@ package rediscache
 import (
 	"context"
 
-	"github.com/redis/go-redis/v9"
 	"ququiz/lintang/quiz-query-service/config"
+
+	"github.com/redis/go-redis/v9"
 )
 
 type Redis struct {
@@ -17,9 +18,8 @@ func NewRedis(cfg *config.Config) *Redis {
 	// 	Addrs: []string{"redis1.redis-svc.redis.svc.cluster.local:16379", ""},
 	// })
 	cli := redis.NewClient(&redis.Options{
-		Addr: cfg.Redis.RedisAddr,
-		// Password: cfg.Redis.RedisPassword,
-		DB: 0,
+		Addr:     cfg.Redis.RedisAddr,
+		Password: cfg.Redis.RedisPassword,
 	})
 
 	return &Redis{cli}

@@ -45,7 +45,7 @@ func NewRabbitMQ(cfg *config.Config) *RabbitMQ {
 		"scoringQuizQueryQueue", // name
 		true,                   // durable
 		false,                   // delete when unused
-		true,                    // exclusive
+		false,                    // exclusive
 		false,                   // no-wait
 		nil,                     // arguments
 	)
@@ -71,7 +71,7 @@ func NewRabbitMQ(cfg *config.Config) *RabbitMQ {
 		"userAnswerQueue", // name
 		true,             // durable
 		false,             // delete when unused
-		true,              // exclusive
+		false,              // exclusive
 		false,             // no-wait
 		nil,               // arguments
 	)

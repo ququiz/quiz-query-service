@@ -13,7 +13,7 @@ import (
 	rediscache "ququiz/lintang/quiz-query-service/biz/dal/redisCache"
 	"ququiz/lintang/quiz-query-service/biz/router"
 	"ququiz/lintang/quiz-query-service/biz/service"
-	"ququiz/lintang/quiz-query-service/biz/util"
+	"ququiz/lintang/quiz-query-service/biz/webapi/grpc"
 	"ququiz/lintang/quiz-query-service/config"
 	"ququiz/lintang/quiz-query-service/kitex_gen/quiz-query-service/pb/quizqueryservice"
 	"ququiz/lintang/quiz-query-service/pkg"
@@ -29,6 +29,7 @@ import (
 	"github.com/hertz-contrib/pprof"
 	_ "go.uber.org/automaxprocs"
 	"go.uber.org/zap"
+	grpcGo "google.golang.org/grpc"
 
 	kitexServer "github.com/cloudwego/kitex/server"
 )
@@ -87,15 +88,22 @@ func main() {
 	quizCommandProd := rabbitmq.NewQuizCommandServiceProducerMQ(rmq)
 	scoringProd := rabbitmq.NewScoringServiceProducerMQ(rmq)
 
+	//grpc
+	cc, err := grpcGo.NewClient(cfg.GRPC.AuthClient)
+	if err != nil {
+		zap.L().Fatal("Newclient gprc (main)", zap.Error(err))
+	}
+
+	authClient := grpc.NewAuthClient(cc)
+
 	// service
 	questionService := service.NewQuestionService(questionRepo, cacheRepo, quizRepo, scoringProd, quizCommandProd)
-	quizService := service.NewQuizService(quizRepo)
+	quizService := service.NewQuizService(quizRepo, authClient)
 
 	// router
 	router.QuizRouter(h, quizService, questionService)
 
 	// insert data to mongodb pake faker
-	util.InsertQuizData(cfg, mongo)
 
 	callback = append(callback, mongo.Close, rds.Close)
 	h.Engine.OnShutdown = append(h.Engine.OnShutdown, callback...) /// graceful shutdown
