@@ -25,6 +25,7 @@ type QuestionRepository interface {
 type CachedQsRepo interface {
 	GetCachedQuestion(ctx context.Context, quizID string) ([]domain.Question, error)
 	SetCachedQuestion(ctx context.Context, quizID string, qs []domain.Question) error
+	DeleteCacheForSpecificQuiz(ctx context.Context, quizID string) error
 }
 
 type ScoringSvcProducerMQ interface {
@@ -59,7 +60,6 @@ func (s *QuestionService) GetAllByQuiz(ctx context.Context, quizID string, userI
 	}
 
 	quiz, err := s.quizRepo.Get(ctx, quizID)
-	
 
 	if err != nil {
 		return []domain.Question{}, domain.WrapErrorf(err, domain.ErrNotFound, fmt.Sprintf("quiz with id %s not found", quizID))

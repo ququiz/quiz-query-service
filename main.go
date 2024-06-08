@@ -82,7 +82,7 @@ func main() {
 
 	// rabbitmq
 	rmq := rabbitmq.NewRabbitMQ(cfg)
-	scoringSvcConsumer := rabbitmq.NewScoringSvcConsumer(rmq)
+	scoringSvcConsumer := rabbitmq.NewScoringSvcConsumer(rmq, cacheRepo)
 	err = scoringSvcConsumer.ListenAndServe()
 
 	// rabbtimq consumer producer
