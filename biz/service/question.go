@@ -59,8 +59,7 @@ func (s *QuestionService) GetAllByQuiz(ctx context.Context, quizID string, userI
 	}
 
 	quiz, err := s.quizRepo.Get(ctx, quizID)
-	// nilQuiz := domain.BaseQuiz{
-	// }
+	
 
 	if err != nil {
 		return []domain.Question{}, domain.WrapErrorf(err, domain.ErrNotFound, fmt.Sprintf("quiz with id %s not found", quizID))

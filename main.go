@@ -30,6 +30,7 @@ import (
 	_ "go.uber.org/automaxprocs"
 	"go.uber.org/zap"
 	grpcGo "google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 
 	kitexServer "github.com/cloudwego/kitex/server"
 )
@@ -89,7 +90,7 @@ func main() {
 	scoringProd := rabbitmq.NewScoringServiceProducerMQ(rmq)
 
 	//grpc
-	cc, err := grpcGo.NewClient(cfg.GRPC.AuthClient)
+	cc, err := grpcGo.NewClient(cfg.GRPC.AuthClient+"?wait=30s", grpcGo.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		zap.L().Fatal("Newclient gprc (main)", zap.Error(err))
 	}

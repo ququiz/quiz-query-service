@@ -2,16 +2,18 @@ package rabbitmq
 
 import (
 	"fmt"
+	rediscache "ququiz/lintang/quiz-query-service/biz/dal/redisCache"
 
 	"go.uber.org/zap"
 )
 
 type ScoringSvcConsumer struct {
 	rmq *RabbitMQ
+	rds rediscache.Redis
 }
 
-func NewScoringSvcConsumer(r *RabbitMQ) *ScoringSvcConsumer {
-	return &ScoringSvcConsumer{r}
+func NewScoringSvcConsumer(r *RabbitMQ, rds rediscache.Redis) *ScoringSvcConsumer {
+	return &ScoringSvcConsumer{r, rds}
 }
 
 const ScoringSvcConsumerName = "quiz-query-consumer"
@@ -60,6 +62,7 @@ func (r *ScoringSvcConsumer) ListenAndServe() error {
 			switch msg.RoutingKey {
 			case "delete-cache":
 				// TODO: implement delete cache questionns & delete cache leaderboard
+
 			default:
 				nack = true
 			}

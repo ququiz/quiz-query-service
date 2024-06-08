@@ -68,7 +68,7 @@ type QuestionWithUserAnswerAggregate struct {
 	Type       QuestionType       `json:"type" bson:"type"`
 	Choices    []Choice           `json:"choices" bson:"choices"`
 	Weight     int32              `json:"weight" bson:"weight"`
-	UserAnswer UserAnswer         `json:"user_answers" bson:"user_answers"`
+	UserAnswer UserAnswer         `json:"user_answer" bson:"user_answer"`
 }
 
 // ini custom bukan di mongodb

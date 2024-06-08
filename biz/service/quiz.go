@@ -63,6 +63,9 @@ func (s *QuizService) Get(ctx context.Context, quizID string) (domain.BaseQuiz, 
 	if err != nil {
 		return domain.BaseQuiz{}, err
 	}
+	for i := 0; i < len(quiz.Questions); i++ {
+		quiz.Questions[i].UserAnswers = []domain.UserAnswer{}
+	}
 	return quiz, nil
 }
 

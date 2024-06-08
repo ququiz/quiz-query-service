@@ -9,7 +9,7 @@ db.base_quiz.aggregate([
     },
   },
     {
-        $project: { "questions.user_answers": 0}
+        $project: { "questions.user_answer": 0}
     }
   ])
 
@@ -25,10 +25,10 @@ db.base_quiz.aggregate([
 			{"path":"$questions"}
 	},
    {$unwind: 
-			{"path":"$questions.user_answers"},
+			{"path":"$questions.user_answer"},
 	},
   {$match: 
-			{"questions.user_answers.participant_id": "665966b6ae5f68a3695350b5"
+			{"questions.user_answer.participant_id": "665966b6ae5f68a3695350b5"
       }
 	}
  ])

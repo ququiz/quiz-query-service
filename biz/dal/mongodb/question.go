@@ -63,7 +63,7 @@ func (r *QuestionRepository) GetAllByQuiz(ctx context.Context, quizID string) ([
 
 	// project := bson.D{
 	// 	{"$project", bson.D{
-	// 		{"questions.user_answers", 0},
+	// 		{"questions.user_answer", 0},
 	// 	}},
 	// }
 
@@ -106,13 +106,13 @@ func (r *QuestionRepository) GetUserAnswerInAQuiz(ctx context.Context, quizID st
 
 	userAnswerFilter := bson.D{
 		{"$unwind", bson.D{
-			{"path", "$questions.user_answers"},
+			{"path", "$questions.user_answer"},
 		}},
 	}
 
 	matchUser := bson.D{
 		{"$match", bson.D{
-			{"questions.user_answers.participant_id", userID},
+			{"questions.user_answer.participant_id", userID},
 		}},
 	}
 
@@ -185,13 +185,13 @@ func (r *QuestionRepository) IsUserAlreadyAnswerThisQuizID(ctx context.Context, 
 
 	userAnswerUnwind := bson.D{
 		{"$unwind", bson.D{
-			{"path", "$questions.user_answers"},
+			{"path", "$questions.user_answer"},
 		}},
 	}
 
 	matchUser := bson.D{
 		{"$match", bson.D{
-			{"questions.user_answers.participant_id", userID},
+			{"questions.user_answer.participant_id", userID},
 		}},
 	}
 

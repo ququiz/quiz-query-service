@@ -6,9 +6,10 @@ import (
 	"fmt"
 	"time"
 
+	"ququiz/lintang/quiz-query-service/biz/domain"
+
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
-	"ququiz/lintang/quiz-query-service/biz/domain"
 )
 
 type RedisCache struct {
@@ -54,4 +55,20 @@ func (c *RedisCache) SetCachedQuestion(ctx context.Context, quizID string, qs []
 	// set expiration for 1h
 	c.cli.Expire(ctx, fmt.Sprintf("questions:%s", quizID), 1*time.Hour)
 	return nil
+}
+
+func (c *RedisCache) DeleteCacheForSpecificQuiz(ctx context.Context, quizID string) error {
+	_, err := c.cli.Del(ctx, fmt.Sprintf(`questions:%s`, quizID)).Result()
+	if err != nil {
+		zap.L().Error(" c.cli.Del(questions) (DeleteCacheForSpecificQuiz) (Redis) ", zap.Error(err))
+		return err
+	}
+
+	_, err = c.cli.Del(ctx, fmt.Sprintf(`leaderboard:%s`, quizID)).Result()
+	if err != nil {
+		zap.L().Error(" c.cli.Del(leaderboard) (DeleteCacheForSpecificQuiz) (Redis) ", zap.Error(err))
+		return err
+	}
+
+	return nil 
 }

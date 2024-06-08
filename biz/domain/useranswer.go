@@ -13,7 +13,7 @@ type QuestionUserAnswer struct {
 	Choices       []Choice           `json:"choices" bson:"choices"`
 	Weight        int32              `json:"weight" bson:"weight"`
 	CorrectAnswer string             `json:"correct_answer" bson:"correct_answer"`
-	UserAnswers   UserAnswer         `json:"user_answers" bson:"user_answers"`
+	UserAnswers   UserAnswer         `json:"user_answer" bson:"user_answer"`
 }
 
 type QuizUserAnswer struct {
@@ -27,7 +27,3 @@ type QuizUserAnswer struct {
 	Participants []Participant      `json:"participants"  bson:"participants"`
 	Status       QuizStatus         `json:"quiz_status" bson:"status"`
 }
-
-
-
-

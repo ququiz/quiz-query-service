@@ -127,7 +127,7 @@ func (h *QuizHandler) GetQuizQuestion(ctx context.Context, c *app.RequestContext
 		return
 	}
 
-	var questionsRes []getQuestionRes
+	var questionsRes []getQuestionRes = []getQuestionRes{}
 	for _, q := range questions {
 		questionsRes = append(questionsRes, getQuestionRes{
 			ID:       q.ID.Hex(),
@@ -172,7 +172,7 @@ type getUserAnswerReq struct {
 }
 
 type userAnswerRes struct {
-	UserAnswers []domain.QuestionAndUserAnswer `json:"user_answers"`
+	UserAnswers []domain.QuestionAndUserAnswer `json:"user_answer"`
 }
 
 func (h *QuizHandler) GetUserAnswer(ctx context.Context, c *app.RequestContext) {
@@ -191,7 +191,7 @@ func (h *QuizHandler) GetUserAnswer(ctx context.Context, c *app.RequestContext) 
 		return
 	}
 
-	var res []domain.QuestionAndUserAnswer
+	var res []domain.QuestionAndUserAnswer = []domain.QuestionAndUserAnswer{}
 	for _, answer := range userAnswers {
 		res = append(res, domain.QuestionAndUserAnswer{
 			UserAnswer: answer.UserAnswers.Answer,
@@ -228,7 +228,7 @@ func (h *QuizHandler) GetQuizDetail(ctx context.Context, c *app.RequestContext) 
 		c.JSON(getStatusCode(err), ResponseError{Message: err.Error()})
 		return
 	}
-	quizDetail.Questions = []domain.Question{}
+
 	c.JSON(http.StatusOK, quizRes{quizDetail})
 }
 
@@ -271,7 +271,7 @@ func (h *QuizHandler) UserAnswerAQuestion(ctx context.Context, c *app.RequestCon
 func (h *QuizHandler) GetCreatedQuiz(ctx context.Context, c *app.RequestContext) {
 	userID, _ := c.Get("userID")
 	quizs, err := h.svc.GetQuizByCreatorID(ctx, userID.(string))
-	var resp []listQuizResp
+	var resp []listQuizResp = []listQuizResp{}
 	for _, quiz := range quizs {
 		resp = append(resp, listQuizResp{
 			ID:        quiz.ID,
@@ -293,7 +293,7 @@ func (h *QuizHandler) GetCreatedQuiz(ctx context.Context, c *app.RequestContext)
 func (h *QuizHandler) GetQuizHistory(ctx context.Context, c *app.RequestContext) {
 	userID, _ := c.Get("userID")
 	quizs, err := h.svc.GetQuizHistory(ctx, userID.(string))
-	var resp []listQuizResp
+	var resp []listQuizResp = []listQuizResp{}
 	for _, quiz := range quizs {
 		resp = append(resp, listQuizResp{
 			ID:        quiz.ID,
