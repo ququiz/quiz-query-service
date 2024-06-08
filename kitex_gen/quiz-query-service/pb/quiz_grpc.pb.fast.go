@@ -143,7 +143,7 @@ func (x *GetQuizParticipantRes) fastReadField1(buf []byte, _type int8) (offset i
 	if err != nil {
 		return offset, err
 	}
-	x.UserId = append(x.UserId, v)
+	x.UserIds = append(x.UserIds, v)
 	return offset, err
 }
 
@@ -231,11 +231,11 @@ func (x *GetQuizParticipantRes) FastWrite(buf []byte) (offset int) {
 }
 
 func (x *GetQuizParticipantRes) fastWriteField1(buf []byte) (offset int) {
-	if len(x.UserId) == 0 {
+	if len(x.UserIds) == 0 {
 		return offset
 	}
-	for i := range x.GetUserId() {
-		offset += fastpb.WriteString(buf[offset:], 1, x.GetUserId()[i])
+	for i := range x.GetUserIds() {
+		offset += fastpb.WriteString(buf[offset:], 1, x.GetUserIds()[i])
 	}
 	return offset
 }
@@ -324,11 +324,11 @@ func (x *GetQuizParticipantRes) Size() (n int) {
 }
 
 func (x *GetQuizParticipantRes) sizeField1() (n int) {
-	if len(x.UserId) == 0 {
+	if len(x.UserIds) == 0 {
 		return n
 	}
-	for i := range x.GetUserId() {
-		n += fastpb.SizeString(1, x.GetUserId()[i])
+	for i := range x.GetUserIds() {
+		n += fastpb.SizeString(1, x.GetUserIds()[i])
 	}
 	return n
 }
@@ -349,5 +349,5 @@ var fieldIDToName_GetQuizParticipantsReq = map[int32]string{
 }
 
 var fieldIDToName_GetQuizParticipantRes = map[int32]string{
-	1: "UserId",
+	1: "UserIds",
 }
