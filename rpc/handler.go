@@ -62,7 +62,7 @@ func (s *QuizQueryServiceImpl) GetQuizParticipants(ctx context.Context, req *pb.
 		participantUserIDs = append(participantUserIDs, quiz.Participants[i].UserID)
 	}
 	res := &pb.GetQuizParticipantRes{
-		UserId: participantUserIDs,
+		UserIds: participantUserIDs,
 	}
 
 	return res, nil
