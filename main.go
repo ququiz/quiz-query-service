@@ -3,9 +3,11 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net"
+	"net/http"
 	"time"
 
 	"ququiz/lintang/quiz-query-service/biz/dal/mongodb"
@@ -20,6 +22,7 @@ import (
 	"ququiz/lintang/quiz-query-service/rpc"
 
 	"github.com/bytedance/gopkg/util/gopool"
+	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/cloudwego/hertz/pkg/app/server"
 	"github.com/cloudwego/hertz/pkg/common/hlog"
 	"github.com/cloudwego/hertz/pkg/route"
@@ -102,6 +105,9 @@ func main() {
 	quizService := service.NewQuizService(quizRepo, authClient)
 
 	// router
+	h.GET("/healthz", func(ctx context.Context, c *app.RequestContext) {
+		c.JSON(http.StatusOK, "service is healthy")
+	}) // health probes
 	router.QuizRouter(h, quizService, questionService)
 
 	// insert data to mongodb pake faker
