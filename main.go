@@ -55,7 +55,12 @@ func main() {
 		server.WithExitWaitTime(4*time.Second),
 	)
 
-	h.Use(accesslog.New()) // jangan pake acess log zap (bikin latency makin tinggi)
+	h.Use(accesslog.New(accesslog.WithLogConditionFunc(func(ctx context.Context, c *app.RequestContext) bool {
+		if c.FullPath() == "/healthz" {
+			return false
+		}
+		return true
+	}))) // jangan pake acess log zap (bikin latency makin tinggi)
 
 	// setup cors
 	corsHandler := cors.New(cors.Config{
