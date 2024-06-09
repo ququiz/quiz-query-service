@@ -188,6 +188,13 @@ func (s *QuestionService) UserAnswerAQuestion(ctx context.Context, quizID string
 			zap.L().Error("s.scoringProducerMQ.SendCorrectAnswer", zap.Error(err))
 			return false, err
 		}
+	} else {
+		correctAnswer.Weight = 0 // kalau jawaban salah tambah skor sebelumnya dengan angka 0 
+		err := s.scoringProducerMQ.SendCorrectAnswer(ctx, correctAnswer)
+		if err != nil {
+			zap.L().Error("s.scoringProducerMQ.SendCorrectAnswer", zap.Error(err))
+			return false, err
+		}
 	}
 	// jika jawaban salah ya gak usah kirim ke scoring service, karan skor user akan sama (gak ditambah sama sekali)..
 
