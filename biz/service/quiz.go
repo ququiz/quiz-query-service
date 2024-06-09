@@ -56,6 +56,7 @@ func (s *QuizService) GetAll(ctx context.Context) ([]domain.BaseQuiz, error) {
 	if err != nil {
 		return []domain.BaseQuiz{}, err
 	}
+
 	return quizs, nil
 }
 
@@ -83,6 +84,28 @@ func (s *QuizService) GetQuizByCreatorID(ctx context.Context, creatorID string) 
 		return []domain.BaseQuiz{}, err
 	}
 
+	var userIDs []string
+	for i := 0; i < len(quizs); i++ {
+		userIDs = append(userIDs, quizs[i].CreatorID)
+	}
+	users, err := s.authClient.GetUsersByIds(ctx, userIDs)
+	if err != nil {
+		return []domain.BaseQuiz{}, err
+	}
+
+	var userIDmap map[string]string = make(map[string]string)
+	for i := 0; i < len(users); i++ {
+		userIDmap[users[i].ID] = users[i].Username
+	}
+
+	for i := 0; i < len(quizs); i++ {
+		quizs[i].CreatorName = userIDmap[quizs[i].CreatorID]
+	}
+
+	if err != nil {
+		return []domain.BaseQuiz{}, err
+	}
+
 	return quizs, nil
 }
 
@@ -92,5 +115,28 @@ func (s *QuizService) GetQuizHistory(ctx context.Context, participantID string) 
 		zap.L().Error(" s.quizRepo.GetQuizHistory (GetQuizHistory ) (QuizService) ")
 		return []domain.BaseQuizIsParticipant{}, err
 	}
+
+	var userIDs []string
+	for i := 0; i < len(quizHistory); i++ {
+		userIDs = append(userIDs, quizHistory[i].CreatorID)
+	}
+	users, err := s.authClient.GetUsersByIds(ctx, userIDs)
+	if err != nil {
+		return []domain.BaseQuizIsParticipant{}, err
+	}
+
+	var userIDmap map[string]string = make(map[string]string)
+	for i := 0; i < len(users); i++ {
+		userIDmap[users[i].ID] = users[i].Username
+	}
+
+	for i := 0; i < len(quizHistory); i++ {
+		quizHistory[i].CreatorName = userIDmap[quizHistory[i].CreatorID]
+	}
+
+	if err != nil {
+		return []domain.BaseQuizIsParticipant{}, err
+	}
+
 	return quizHistory, nil
 }

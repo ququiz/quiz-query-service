@@ -276,13 +276,14 @@ func (h *QuizHandler) GetCreatedQuiz(ctx context.Context, c *app.RequestContext)
 	var resp []listQuizResp = []listQuizResp{}
 	for _, quiz := range quizs {
 		resp = append(resp, listQuizResp{
-			ID:        quiz.ID,
-			Name:      quiz.Name,
-			CreatorID: quiz.CreatorID,
-			Passcode:  quiz.Passcode,
-			StartTime: quiz.StartTime,
-			EndTime:   quiz.EndTime,
-			Status:    quiz.Status,
+			ID:          quiz.ID,
+			Name:        quiz.Name,
+			CreatorID:   quiz.CreatorID,
+			Passcode:    quiz.Passcode,
+			StartTime:   quiz.StartTime,
+			EndTime:     quiz.EndTime,
+			Status:      quiz.Status,
+			Creatorname: quiz.CreatorName,
 		})
 	}
 	if err != nil {
@@ -298,13 +299,14 @@ func (h *QuizHandler) GetQuizHistory(ctx context.Context, c *app.RequestContext)
 	var resp []listQuizResp = []listQuizResp{}
 	for _, quiz := range quizs {
 		resp = append(resp, listQuizResp{
-			ID:        quiz.ID,
-			Name:      quiz.Name,
-			CreatorID: quiz.CreatorID,
-			Passcode:  quiz.Passcode,
-			StartTime: quiz.StartTime,
-			EndTime:   quiz.EndTime,
-			Status:    domain.QuizStatus(quiz.Status),
+			ID:          quiz.ID,
+			Name:        quiz.Name,
+			CreatorID:   quiz.CreatorID,
+			Passcode:    quiz.Passcode,
+			StartTime:   quiz.StartTime,
+			EndTime:     quiz.EndTime,
+			Status:      domain.QuizStatus(quiz.Status),
+			Creatorname: quiz.CreatorName,
 		})
 	}
 	if err != nil {

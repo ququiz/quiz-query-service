@@ -1,6 +1,6 @@
-docker build . -t lintangbirdas/quiz-query-service:19
-docker tag lintangbirdas/quiz-query-service:19 lintangbirdas/quiz-query-service:19
-docker push lintangbirdas/quiz-query-service:19
+docker build . -t lintangbirdas/quiz-query-service:21
+docker tag lintangbirdas/quiz-query-service:21 lintangbirdas/quiz-query-service:21
+docker push lintangbirdas/quiz-query-service:21
 
 
 

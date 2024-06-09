@@ -167,3 +167,4 @@ func (r *QuizRepository) GetQuizHistory(ctx context.Context, participantID strin
 	}
 	return quizs, nil
 }
+
