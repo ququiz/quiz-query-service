@@ -18,6 +18,7 @@ type QuizRepository interface {
 
 type AuthGRPCClient interface {
 	GetUsersByIds(ctx context.Context, userIDs []string) ([]domain.User, error)
+	GetUserByID(ctx context.Context, userID string) (domain.User, error)
 }
 
 type QuizService struct {
@@ -66,6 +67,12 @@ func (s *QuizService) Get(ctx context.Context, quizID string) (domain.BaseQuiz, 
 	for i := 0; i < len(quiz.Questions); i++ {
 		quiz.Questions[i].UserAnswers = []domain.UserAnswer{}
 	}
+	user, err := s.authClient.GetUserByID(ctx, quiz.CreatorID)
+	if err != nil {
+		zap.L().Error(" s.authClient.GetUserByID (Get) (QuizService)", zap.Error(err))
+		return domain.BaseQuiz{}, err
+	}
+	quiz.CreatorName = user.Username
 	return quiz, nil
 }
 

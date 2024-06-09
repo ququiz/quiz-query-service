@@ -124,6 +124,11 @@ func (x *GetQuizParticipantRes) FastRead(buf []byte, _type int8, number int32) (
 		if err != nil {
 			goto ReadFieldError
 		}
+	case 2:
+		offset, err = x.fastReadField2(buf, _type)
+		if err != nil {
+			goto ReadFieldError
+		}
 	default:
 		offset, err = fastpb.Skip(buf, _type, number)
 		if err != nil {
@@ -144,6 +149,11 @@ func (x *GetQuizParticipantRes) fastReadField1(buf []byte, _type int8) (offset i
 		return offset, err
 	}
 	x.UserIds = append(x.UserIds, v)
+	return offset, err
+}
+
+func (x *GetQuizParticipantRes) fastReadField2(buf []byte, _type int8) (offset int, err error) {
+	x.QuizName, offset, err = fastpb.ReadString(buf, _type)
 	return offset, err
 }
 
@@ -227,6 +237,7 @@ func (x *GetQuizParticipantRes) FastWrite(buf []byte) (offset int) {
 		return offset
 	}
 	offset += x.fastWriteField1(buf[offset:])
+	offset += x.fastWriteField2(buf[offset:])
 	return offset
 }
 
@@ -237,6 +248,14 @@ func (x *GetQuizParticipantRes) fastWriteField1(buf []byte) (offset int) {
 	for i := range x.GetUserIds() {
 		offset += fastpb.WriteString(buf[offset:], 1, x.GetUserIds()[i])
 	}
+	return offset
+}
+
+func (x *GetQuizParticipantRes) fastWriteField2(buf []byte) (offset int) {
+	if x.QuizName == "" {
+		return offset
+	}
+	offset += fastpb.WriteString(buf[offset:], 2, x.GetQuizName())
 	return offset
 }
 
@@ -320,6 +339,7 @@ func (x *GetQuizParticipantRes) Size() (n int) {
 		return n
 	}
 	n += x.sizeField1()
+	n += x.sizeField2()
 	return n
 }
 
@@ -330,6 +350,14 @@ func (x *GetQuizParticipantRes) sizeField1() (n int) {
 	for i := range x.GetUserIds() {
 		n += fastpb.SizeString(1, x.GetUserIds()[i])
 	}
+	return n
+}
+
+func (x *GetQuizParticipantRes) sizeField2() (n int) {
+	if x.QuizName == "" {
+		return n
+	}
+	n += fastpb.SizeString(2, x.GetQuizName())
 	return n
 }
 
@@ -350,4 +378,5 @@ var fieldIDToName_GetQuizParticipantsReq = map[int32]string{
 
 var fieldIDToName_GetQuizParticipantRes = map[int32]string{
 	1: "UserIds",
+	2: "QuizName",
 }

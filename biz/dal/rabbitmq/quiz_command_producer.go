@@ -40,10 +40,10 @@ func (s *QuizCommandServiceProducerMQ) publishToQuizCommandSvc(ctx context.Conte
 		amqp.Publishing{
 			AppId:       "quiz-query-service",
 			ContentType: "application/json",
-			Body:       jsonBody,
+			Body:        jsonBody,
 			Timestamp:   time.Now(),
 		})
-		
+
 	if err != nil {
 		zap.L().Error("m.ch.Publish: ", zap.Error(err))
 		return err

@@ -70,6 +70,7 @@ type listQuizResp struct {
 	ID          primitive.ObjectID   `json:"id"`
 	Name        string               `json:"name"`
 	CreatorID   string               `json:"creator_id"`
+	Creatorname string               `json:"creator_name"`
 	Passcode    string               `json:"passcode"`
 	StartTime   time.Time            `json:"start_time"`
 	EndTime     time.Time            `json:"end_time"`
@@ -96,6 +97,7 @@ func (h *QuizHandler) GetAllQuiz(ctx context.Context, c *app.RequestContext) {
 			EndTime:     quiz.EndTime,
 			Status:      quiz.Status,
 			Participant: quiz.Participants,
+			Creatorname: quiz.CreatorName,
 		})
 	}
 	c.JSON(http.StatusOK, resp)

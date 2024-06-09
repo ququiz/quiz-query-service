@@ -57,12 +57,13 @@ func (s *QuizQueryServiceImpl) GetQuizParticipants(ctx context.Context, req *pb.
 		zap.L().Error("s.quizRepo.Get (GetQuizParticipants) (QuizQueryGrpcService)", zap.Error(err))
 		return nil, status.Errorf(codes.NotFound, "quiz with id %s not found", req.QuizId)
 	}
-	var participantUserIDs []string
+	var participantUserIDs []string = []string{}
 	for i := 0; i < len(quiz.Participants); i++ {
 		participantUserIDs = append(participantUserIDs, quiz.Participants[i].UserID)
 	}
 	res := &pb.GetQuizParticipantRes{
-		UserIds: participantUserIDs,
+		UserIds:  participantUserIDs,
+		QuizName: quiz.Name,
 	}
 
 	return res, nil
