@@ -43,9 +43,9 @@ func NewRabbitMQ(cfg *config.Config) *RabbitMQ {
 
 	channel.QueueDeclare(
 		"scoringQuizQueryQueue", // name
-		true,                   // durable
+		true,                    // durable
 		false,                   // delete when unused
-		false,                    // exclusive
+		false,                   // exclusive
 		false,                   // no-wait
 		nil,                     // arguments
 	)
@@ -53,6 +53,15 @@ func NewRabbitMQ(cfg *config.Config) *RabbitMQ {
 		zap.L().Info("err: channel.QuueeDeclare(scoringQuizQueryQueue) : " + err.Error())
 
 	}
+
+	channel.QueueDeclare(
+		"delete-cache-queue",
+		false, // durable
+		false, // delete when unused
+		false, // exclusive
+		false, // no-wait
+		nil,   // arguments
+	)
 
 	err = channel.ExchangeDeclare(
 		"quiz-command-quiz-query",
@@ -69,9 +78,9 @@ func NewRabbitMQ(cfg *config.Config) *RabbitMQ {
 
 	channel.QueueDeclare(
 		"userAnswerQueue", // name
-		true,             // durable
+		true,              // durable
 		false,             // delete when unused
-		false,              // exclusive
+		false,             // exclusive
 		false,             // no-wait
 		nil,               // arguments
 	)
