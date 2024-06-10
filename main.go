@@ -102,6 +102,7 @@ func main() {
 	if err != nil {
 		zap.L().Fatal("Newclient gprc (main)", zap.Error(err))
 	}
+	defer cc.Close() // close auth grpc connection when graceful shutdown to avoid memory leaks
 
 	authClient := grpc.NewAuthClient(cc)
 
@@ -127,7 +128,7 @@ func main() {
 	opts = append(opts, kitexServer.WithExitWaitTime(5*time.Second))
 
 	quizGRPCSvc := rpc.NewQuizService(questionRepo, quizRepo)
-	srv := quizqueryservice.NewServer(quizGRPCSvc, opts...)
+	srv := quizqueryservice.NewServer(quizGRPCSvc, opts...) 
 	go func() {
 		// start kitex rpc server (grpc)
 		err := srv.Run()
