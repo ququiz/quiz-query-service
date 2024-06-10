@@ -28,9 +28,10 @@ func NewRabbitMQ(cfg *config.Config) *RabbitMQ {
 		zap.L().Fatal("error can't get rabbitmq cahnnel: " + err.Error())
 	}
 
+	// kirim jawaban user
 	err = channel.ExchangeDeclare(
 		"scoring-quiz-query",
-		"topic",
+		"direct",
 		true,
 		false,
 		false,
@@ -41,39 +42,24 @@ func NewRabbitMQ(cfg *config.Config) *RabbitMQ {
 		zap.L().Fatal("err: channel.ExchangeDeclare : " + err.Error())
 	}
 
-	channel.QueueDeclare(
-		"scoringQuizQueryQueue", // name
-		true,                    // durable
-		false,                   // delete when unused
-		false,                   // exclusive
-		false,                   // no-wait
-		nil,                     // arguments
-	)
-	if err != nil {
-		zap.L().Info("err: channel.QuueeDeclare(scoringQuizQueryQueue) : " + err.Error())
+	// buat scoring service
+	// channel.QueueDeclare(
+	// 	"scoringQuizQueryQueue", // name
+	// 	true,                   // durable
+	// 	false,                   // delete when unused
+	// 	false,                    // exclusive
+	// 	false,                   // no-wait
+	// 	nil,                     // arguments
+	// )
+	// if err != nil {
+	// 	zap.L().Info("err: channel.QuueeDeclare(scoringQuizQueryQueue) : " + err.Error())
 
-	}
+	// }
 
-	channel.QueueDeclare(
-		"delete-cache-queue",
-		false, // durable
-		false, // delete when unused
-		false, // exclusive
-		false, // no-wait
-		nil,   // arguments
-	)
-
-	channel.QueueBind(
-		"delete-cache-queue",
-		"delete-cache",
-		"scoring-quiz-query",
-		false,
-		nil,
-	)
-
+	// kirim jawaban user
 	err = channel.ExchangeDeclare(
 		"quiz-command-quiz-query",
-		"topic",
+		"direct",
 		true,
 		false,
 		false,
@@ -84,6 +70,7 @@ func NewRabbitMQ(cfg *config.Config) *RabbitMQ {
 		zap.L().Fatal("err: channel.ExchangeDeclare : " + err.Error())
 	}
 
+	// quiz command servcei
 	channel.QueueDeclare(
 		"userAnswerQueue", // name
 		true,              // durable

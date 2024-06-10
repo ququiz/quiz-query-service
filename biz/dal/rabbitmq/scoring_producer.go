@@ -21,6 +21,7 @@ func NewScoringServiceProducerMQ(rmq *RabbitMQ) *ScoringServiceProducerMQ {
 	}
 }
 
+// jawaban user buat hitung skor user
 func (s *ScoringServiceProducerMQ) SendCorrectAnswer(ctx context.Context, correctAnswerMsg domain.CorrectAnswer) error {
 	return s.publish(ctx, "correct-answer", correctAnswerMsg)
 }

@@ -20,6 +20,7 @@ func NewQuizCommandServiceProducerMQ(rmq *RabbitMQ) *QuizCommandServiceProducerM
 	}
 }
 
+// buat simpen jaw
 func (s *QuizCommandServiceProducerMQ) SendCorrectAnswerToQuizCommandService(ctx context.Context, userAnswerMsg domain.UserAnswerMQ) error {
 	return s.publishToQuizCommandSvc(ctx, "user-answer", userAnswerMsg)
 }
