@@ -24,16 +24,6 @@ const ScoringSvcConsumerName = "quiz-query-consumer"
 func (r *ScoringSvcConsumer) ListenAndServe() error {
 	
 
-	err := r.rmq.Channel.QueueBind(
-		"delete-cache-queue",
-		"delete-cache",
-		"scoring-quiz-query",
-		false,
-		nil,
-	)
-	if err != nil {
-		zap.L().Fatal(fmt.Sprintf("cant bind queue %s to exchange scoring-quiz-query", "delete-cache-queue"))
-	}
 	msgs, err := r.rmq.Channel.Consume(
 		"delete-cache-queue",
 		ScoringSvcConsumerName,

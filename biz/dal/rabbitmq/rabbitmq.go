@@ -63,6 +63,14 @@ func NewRabbitMQ(cfg *config.Config) *RabbitMQ {
 		nil,   // arguments
 	)
 
+	channel.QueueBind(
+		"delete-cache-queue",
+		"delete-cache",
+		"scoring-quiz-query",
+		false,
+		nil,
+	)
+
 	err = channel.ExchangeDeclare(
 		"quiz-command-quiz-query",
 		"topic",
