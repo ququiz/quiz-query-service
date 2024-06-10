@@ -1,6 +1,7 @@
 package rabbitmq
 
 import (
+	"context"
 	"ququiz/lintang/quiz-query-service/config"
 
 	"github.com/streadway/amqp"
@@ -27,6 +28,13 @@ func NewRabbitMQ(cfg *config.Config) *RabbitMQ {
 	if err != nil {
 		zap.L().Fatal("error can't get rabbitmq cahnnel: " + err.Error())
 	}
+	err = channel.Qos(
+		1, 0,
+		false,
+	)
+	if err != nil {
+		zap.L().Error("err: channel.Qos" + err.Error())
+	}
 
 	// kirim jawaban user
 	err = channel.ExchangeDeclare(
@@ -41,20 +49,24 @@ func NewRabbitMQ(cfg *config.Config) *RabbitMQ {
 	if err != nil {
 		zap.L().Fatal("err: channel.ExchangeDeclare : " + err.Error())
 	}
+	// tadi sebelumnya pake direct & buat queue per replica malah mesasge yg sama diconsume 4 replica
 
-	// buat scoring service
+	// buat scoring service (bikin manual di webnya aja)
 	// channel.QueueDeclare(
 	// 	"scoringQuizQueryQueue", // name
-	// 	true,                   // durable
+	// 	true,                    // durable
 	// 	false,                   // delete when unused
-	// 	false,                    // exclusive
+	// 	false,                   // exclusive
 	// 	false,                   // no-wait
 	// 	nil,                     // arguments
 	// )
-	// if err != nil {
-	// 	zap.L().Info("err: channel.QuueeDeclare(scoringQuizQueryQueue) : " + err.Error())
-
-	// }
+	// channel.QueueBind(
+	// 	"scoringQuizQueryQueue",
+	// 	"correct-answer",
+	// 	"scoring-quiz-query",
+	// 	false,
+	// 	nil,
+	// )
 
 	// kirim jawaban user
 	err = channel.ExchangeDeclare(
@@ -70,26 +82,35 @@ func NewRabbitMQ(cfg *config.Config) *RabbitMQ {
 		zap.L().Fatal("err: channel.ExchangeDeclare : " + err.Error())
 	}
 
-	// quiz command servcei
-	channel.QueueDeclare(
-		"userAnswerQueue", // name
-		true,              // durable
-		false,             // delete when unused
-		false,             // exclusive
-		false,             // no-wait
-		nil,               // arguments
-	)
-	if err != nil {
-		zap.L().Info("err: channel.QuueeDeclare(userAnswerQueue) : " + err.Error())
-	}
+	// bikin manual aja di webnya
 
-	err = channel.Qos(
-		1, 0,
-		false,
-	)
-	if err != nil {
-		zap.L().Fatal("err: channel.Qos" + err.Error())
-	}
+	// // quiz command servcei
+	// channel.QueueDeclare(
+	// 	"userAnswerQueue", // name
+	// 	true,              // durable
+	// 	false,             // delete when unused
+	// 	false,             // exclusive
+	// 	false,             // no-wait
+	// 	nil,               // arguments
+	// )
+
+	// // buat scoring ke quiz query (delete cache)
+	// channel.QueueDeclare(
+	// 	"delete-cache-queue",
+	// 	true,  // durable
+	// 	false, // delete when unused
+	// 	false, // exclusive
+	// 	false, // no-wait
+	// 	nil,   // arguments
+	// )
+
+	// channel.QueueBind(
+	// 	"delete-cache-queue",
+	// 	"delete-cache",
+	// 	"scoring-quiz-query",
+	// 	false,
+	// 	nil,
+	// )
 
 	return &RabbitMQ{
 		Connection: conn,
@@ -98,7 +119,7 @@ func NewRabbitMQ(cfg *config.Config) *RabbitMQ {
 
 }
 
-func (r *RabbitMQ) Close() error {
+func (r *RabbitMQ) Close(ctx context.Context) {
 
-	return r.Connection.Close()
+	r.Connection.Close()
 }

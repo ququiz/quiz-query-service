@@ -20,7 +20,7 @@ func NewAuthClient(cc *grpc.ClientConn) *AuthClient {
 }
 
 func (a *AuthClient) GetUsersByIds(ctx context.Context, userIDs []string) ([]domain.User, error) {
-	grpcCtx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	grpcCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	req := &pb.GetUserRequestByIds{
@@ -45,7 +45,7 @@ func (a *AuthClient) GetUsersByIds(ctx context.Context, userIDs []string) ([]dom
 }
 
 func (a *AuthClient) GetUserByID(ctx context.Context, userID string) (domain.User, error) {
-	grpcCtx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	grpcCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	req := &pb.GetUserRequest{

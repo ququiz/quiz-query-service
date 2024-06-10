@@ -65,6 +65,7 @@ func InitZapLogger(cfg *config.Config) *hertzzap.Logger {
 	prodAndDevLogger := hertzzap.NewLogger(hertzzap.WithZapOptions(zap.WithFatalHook(zapcore.WriteThenPanic)),
 		hertzzap.WithCores(logsCores...))
 
+	
 	return prodAndDevLogger
 }
 

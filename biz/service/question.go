@@ -182,6 +182,7 @@ func (s *QuestionService) UserAnswerAQuestion(ctx context.Context, quizID string
 	correctAnswer.UserID = userID
 	correctAnswer.Username = username
 	if isCorrect {
+		zap.L().Debug("send  correct user answer to scoring service !!!!")
 		// jika jawaban user benar, maka send message to scoring service, buat dicalculate new score nya (ditambah scorenya)
 		err := s.scoringProducerMQ.SendCorrectAnswer(ctx, correctAnswer)
 		if err != nil {
@@ -189,7 +190,8 @@ func (s *QuestionService) UserAnswerAQuestion(ctx context.Context, quizID string
 			return false, err
 		}
 	} else {
-		correctAnswer.Weight = 0 // kalau jawaban salah tambah skor sebelumnya dengan angka 0 
+		zap.L().Debug("send wrong user answer to scoring service !!!!")
+		correctAnswer.Weight = 0 // kalau jawaban salah tambah skor sebelumnya dengan angka 0
 		err := s.scoringProducerMQ.SendCorrectAnswer(ctx, correctAnswer)
 		if err != nil {
 			zap.L().Error("s.scoringProducerMQ.SendCorrectAnswer", zap.Error(err))

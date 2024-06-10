@@ -23,39 +23,39 @@ const ScoringSvcConsumerName = "quiz-query-consumer"
 
 // consume delete cache message
 func (r *ScoringSvcConsumer) ListenAndServe() error {
-	queue, err := r.rmq.Channel.QueueDeclare(
-		"",
-		false, // durable
-		false, // delete when unused
-		false, // exclusive
-		false, // no-wait
-		nil,   // arguments
-	)
-	if err != nil {
-		zap.L().Fatal("cant create new queue (r.rmq.Channel.QueueDeclare) (ListenAndServe) (RMQConsumer) ", zap.Error(err))
+	// queue, err := r.rmq.Channel.QueueDeclare(
+	// 	"",
+	// 	false, // durable
+	// 	false, // delete when unused
+	// 	false, // exclusive
+	// 	false, // no-wait
+	// 	nil,   // arguments
+	// )
+	// if err != nil {
+	// 	zap.L().Fatal("cant create new queue (r.rmq.Channel.QueueDeclare) (ListenAndServe) (RMQConsumer) ", zap.Error(err))
 
-	}
-	err = r.rmq.Channel.QueueBind(
-		queue.Name,
-		"delete-cache",
-		"scoring-quiz-query",
-		false,
-		nil,
-	)
-	if err != nil {
-		zap.L().Fatal(fmt.Sprintf("cant bind queue %s to exchange scoring-quiz-query", queue.Name))
-	}
+	// }
+	// err = r.rmq.Channel.QueueBind(
+	// 	"delete-cache-queue",
+	// 	"delete-cache",
+	// 	"scoring-quiz-query",
+	// 	false,
+	// 	nil,
+	// )
+	// if err != nil {
+	// 	zap.L().Fatal(fmt.Sprintf("cant bind queue %s to exchange scoring-quiz-query", "delete-cache-queue",))
+	// }
 	msgs, err := r.rmq.Channel.Consume(
-		queue.Name,
-		ScoringSvcConsumerName,
-		false, // auto-ack
+		"delete-cache-queue",
+		"",
+		true,  // auto-ack
 		false, // exclusive
 		false, // no-local
 		false, // no-wait
 		nil,   // args
 	)
 	if err != nil {
-		zap.L().Fatal(fmt.Sprint("cant consume message from queue %s", queue.Name))
+		zap.L().Fatal(fmt.Sprint("cant consume message from queue %s", "delete-cache-queue"), zap.Error(err))
 	}
 
 	go func() {
@@ -77,7 +77,7 @@ func (r *ScoringSvcConsumer) ListenAndServe() error {
 			}
 
 			if nack {
-				zap.L().Info(fmt.Sprintf("NAcking message from queue %s", queue.Name))
+				zap.L().Info(fmt.Sprintf("NAcking message from queue %s", "delete-cache-queue"))
 
 				_ = msg.Nack(false, nack)
 			} else {

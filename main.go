@@ -26,10 +26,12 @@ import (
 	"github.com/cloudwego/hertz/pkg/app/server"
 	"github.com/cloudwego/hertz/pkg/common/hlog"
 	"github.com/cloudwego/hertz/pkg/route"
+	"github.com/cloudwego/kitex/pkg/klog"
 	"github.com/cloudwego/kitex/pkg/transmeta"
 	"github.com/hertz-contrib/cors"
 	"github.com/hertz-contrib/logger/accesslog"
 	"github.com/hertz-contrib/pprof"
+	kitexlogrus "github.com/kitex-contrib/obs-opentelemetry/logging/logrus"
 	_ "go.uber.org/automaxprocs"
 	"go.uber.org/zap"
 	grpcGo "google.golang.org/grpc"
@@ -118,19 +120,22 @@ func main() {
 
 	// insert data to mongodb pake faker
 
-	callback = append(callback, mongo.Close, rds.Close)
+	callback = append(callback, mongo.Close, rds.Close, rmq.Close)
 	h.Engine.OnShutdown = append(h.Engine.OnShutdown, callback...) /// graceful shutdown
 
-	addr, _ := net.ResolveTCPAddr("tcp", fmt.Sprintf(`127.0.0.1:%s`, cfg.GRPC.URLGrpc)) // grpc address
+	addr, _ := net.ResolveTCPAddr("tcp", fmt.Sprintf(`0.0.0.0:%s`, cfg.GRPC.URLGrpc)) // grpc address
 	var opts []kitexServer.Option
 	opts = append(opts, kitexServer.WithMetaHandler(transmeta.ServerHTTP2Handler))
 	opts = append(opts, kitexServer.WithServiceAddr(addr))
 	opts = append(opts, kitexServer.WithExitWaitTime(5*time.Second))
 
 	quizGRPCSvc := rpc.NewQuizService(questionRepo, quizRepo)
-	srv := quizqueryservice.NewServer(quizGRPCSvc, opts...) 
+	srv := quizqueryservice.NewServer(quizGRPCSvc, opts...)
+	klog.SetLogger(kitexlogrus.NewLogger())
+	klog.SetLevel(klog.LevelDebug)
 	go func() {
 		// start kitex rpc server (grpc)
+
 		err := srv.Run()
 		if err != nil {
 			log.Fatal(err)
