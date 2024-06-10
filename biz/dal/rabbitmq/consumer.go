@@ -48,7 +48,7 @@ func (r *ScoringSvcConsumer) ListenAndServe() error {
 	msgs, err := r.rmq.Channel.Consume(
 		"delete-cache-queue",
 		"",
-		true,  // auto-ack
+		false, // auto-ack # autoo ack bikin gak consume mesage asw
 		false, // exclusive
 		false, // no-local
 		false, // no-wait
@@ -89,6 +89,7 @@ func (r *ScoringSvcConsumer) ListenAndServe() error {
 			zap.L().Info("No more messages to consume. Extiing.")
 
 		}
+		zap.L().Info(" Extiing. consumer")
 	}()
 
 	return nil
