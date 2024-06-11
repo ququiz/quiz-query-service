@@ -5,7 +5,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 	"net"
 	"net/http"
 	"time"
@@ -17,27 +16,23 @@ import (
 	"ququiz/lintang/quiz-query-service/biz/service"
 	"ququiz/lintang/quiz-query-service/biz/webapi/grpc"
 	"ququiz/lintang/quiz-query-service/config"
-	"ququiz/lintang/quiz-query-service/kitex_gen/quiz-query-service/pb/quizqueryservice"
 	"ququiz/lintang/quiz-query-service/pkg"
 	"ququiz/lintang/quiz-query-service/rpc"
 
 	"github.com/bytedance/gopkg/util/gopool"
 	"github.com/cloudwego/hertz/pkg/app"
+	grpcClient "google.golang.org/grpc"
+
 	"github.com/cloudwego/hertz/pkg/app/server"
 	"github.com/cloudwego/hertz/pkg/common/hlog"
 	"github.com/cloudwego/hertz/pkg/route"
-	"github.com/cloudwego/kitex/pkg/klog"
-	"github.com/cloudwego/kitex/pkg/transmeta"
 	"github.com/hertz-contrib/cors"
 	"github.com/hertz-contrib/logger/accesslog"
 	"github.com/hertz-contrib/pprof"
-	kitexlogrus "github.com/kitex-contrib/obs-opentelemetry/logging/logrus"
 	_ "go.uber.org/automaxprocs"
 	"go.uber.org/zap"
 	grpcGo "google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-
-	kitexServer "github.com/cloudwego/kitex/server"
 )
 
 func main() {
@@ -94,6 +89,9 @@ func main() {
 	rmq := rabbitmq.NewRabbitMQ(cfg)
 	scoringSvcConsumer := rabbitmq.NewScoringSvcConsumer(rmq, cacheRepo)
 	err = scoringSvcConsumer.ListenAndServe()
+	if err != nil {
+		zap.L().Error("ScoringSvcConsumer.ListenAndServe()", zap.Error(err))
+	}
 
 	// rabbtimq consumer producer
 	quizCommandProd := rabbitmq.NewQuizCommandServiceProducerMQ(rmq)
@@ -123,24 +121,45 @@ func main() {
 	callback = append(callback, mongo.Close, rds.Close, rmq.Close)
 	h.Engine.OnShutdown = append(h.Engine.OnShutdown, callback...) /// graceful shutdown
 
-	addr, _ := net.ResolveTCPAddr("tcp", fmt.Sprintf(`0.0.0.0:%s`, cfg.GRPC.URLGrpc)) // grpc address
-	var opts []kitexServer.Option
-	opts = append(opts, kitexServer.WithMetaHandler(transmeta.ServerHTTP2Handler))
-	opts = append(opts, kitexServer.WithServiceAddr(addr))
-	opts = append(opts, kitexServer.WithExitWaitTime(5*time.Second))
+	// addr, _ := net.ResolveTCPAddr("tcp", fmt.Sprintf(`0.0.0.0:%s`, cfg.GRPC.URLGrpc)) // grpc address
+	// var opts []kitexServer.Option
+	// opts = append(opts, kitexServer.WithMetaHandler(transmeta.ServerHTTP2Handler))
+	// opts = append(opts, kitexServer.WithServiceAddr(addr))
+	// opts = append(opts, kitexServer.WithExitWaitTime(5*time.Second))
+	// opts = append(opts, kitexServer.WithGRPCWriteBufferSize(1000*1000*100))
+	// opts = append(opts, kitexServer.WithGRPCReadBufferSize(1000*1000*100))
+	// opts = append(opts, kitexServer.WithGRPCInitialConnWindowSize(1000*1000*100))
+	// opts = append(opts, kitexServer.WithGRPCInitialWindowSize(1000*1000*100))
 
-	quizGRPCSvc := rpc.NewQuizService(questionRepo, quizRepo)
-	srv := quizqueryservice.NewServer(quizGRPCSvc, opts...)
-	klog.SetLogger(kitexlogrus.NewLogger())
-	klog.SetLevel(klog.LevelDebug)
+	// quizGRPCSvc := rpc.NewQuizService(questionRepo, quizRepo)
+	// srv := quizqueryservice.NewServer(quizGRPCSvc, opts...)
+	// klog.SetLogger(kitexlogrus.NewLogger())
+	// klog.SetLevel(klog.LevelDebug)
+	// go func() {
+	// 	// start kitex rpc server (grpc)
+
+	// 	err := srv.Run()
+	// 	if err != nil {
+	// 		log.Fatal(err)
+	// 	}
+	// }()
+
+	listener, err := net.Listen("tcp", cfg.GRPC.URLGrpc)
+	if err != nil {
+		zap.L().Fatal("net.Listen(, cfg.GRPC.URLGrpc)", zap.Error(err))
+	}
+
+	quizServiceGRPC := rpc.NewQuizService(questionRepo, quizRepo)
+	grpcServerChan := make(chan *grpcClient.Server)
+
 	go func() {
-		// start kitex rpc server (grpc)
-
-		err := srv.Run()
+		zap.L().Info("grpc server run on port: " + cfg.GRPC.URLGrpc)
+		err := service.RunGRPCServer(quizServiceGRPC, listener, grpcServerChan)
 		if err != nil {
-			log.Fatal(err)
+			zap.L().Fatal("cannot start GRPC  Server", zap.Error(err))
 		}
 	}()
-
+	var grpcServer = <-grpcServerChan
+	fmt.Println(grpcServer)
 	h.Spin()
 }

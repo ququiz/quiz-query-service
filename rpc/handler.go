@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"ququiz/lintang/quiz-query-service/biz/service"
-	pb "ququiz/lintang/quiz-query-service/kitex_gen/quiz-query-service/pb"
+	"ququiz/lintang/quiz-query-service/pb"
 
 	"github.com/cloudwego/kitex/pkg/remote/trans/nphttp2/codes"
 	"github.com/cloudwego/kitex/pkg/remote/trans/nphttp2/status"
@@ -13,6 +13,8 @@ import (
 
 // QuizQueryServiceImpl implements the last service interface defined in the IDL.
 type QuizQueryServiceImpl struct {
+	pb.UnimplementedQuizQueryServiceServer
+
 	questionRepo service.QuestionRepository
 	quizRepo     service.QuizRepository
 }
@@ -25,7 +27,7 @@ func NewQuizService(qs service.QuestionRepository, quiz service.QuizRepository) 
 }
 
 // GetQuestionDetail implements the QuizQueryServiceImpl interface.
-func (s *QuizQueryServiceImpl) GetQuestionDetail(ctx context.Context, req *pb.GetQuestionReq) (resp *pb.GetQuestionRes, err error) {
+func (s *QuizQueryServiceImpl) GetQuestionDetail(ctx context.Context, req *pb.GetQuestionReq) (*pb.GetQuestionRes, error) {
 	// TODO: Your code here...
 	quiz, err := s.questionRepo.GetQuestionByIDAndQuizID(ctx, req.QuizId, req.QuestionId)
 	if err != nil {
@@ -39,7 +41,6 @@ func (s *QuizQueryServiceImpl) GetQuestionDetail(ctx context.Context, req *pb.Ge
 			correctChoiceID = quiz.Questions.Choices[i].ID.Hex()
 		}
 	}
-	resp.CorrectChoiceId = correctChoiceID
 	res := &pb.GetQuestionRes{
 		Weight:               uint64(quiz.Questions.Weight),
 		CorrectEssayAnswerId: quiz.Questions.CorrectAnswer,
@@ -50,9 +51,11 @@ func (s *QuizQueryServiceImpl) GetQuestionDetail(ctx context.Context, req *pb.Ge
 }
 
 // GetQuizParticipants implements the QuizQueryServiceImpl interface.
-func (s *QuizQueryServiceImpl) GetQuizParticipants(ctx context.Context, req *pb.GetQuizParticipantsReq) (resp *pb.GetQuizParticipantRes, err error) {
+func (s *QuizQueryServiceImpl) GetQuizParticipants(ctx context.Context, req *pb.GetQuizParticipantsReq) (*pb.GetQuizParticipantRes, error) {
 	// TODO: Your code here...
+	zap.L().Debug("GRPC GetQuizParticipants called", zap.String("quizID", req.QuizId))
 	quiz, err := s.quizRepo.Get(ctx, req.QuizId)
+	
 	if err != nil {
 		zap.L().Error("s.quizRepo.Get (GetQuizParticipants) (QuizQueryGrpcService)", zap.Error(err))
 		return nil, status.Errorf(codes.NotFound, "quiz with id %s not found", req.QuizId)
