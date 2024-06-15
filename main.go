@@ -14,6 +14,7 @@ import (
 	rediscache "ququiz/lintang/quiz-query-service/biz/dal/redisCache"
 	"ququiz/lintang/quiz-query-service/biz/router"
 	"ququiz/lintang/quiz-query-service/biz/service"
+	"ququiz/lintang/quiz-query-service/biz/util"
 	"ququiz/lintang/quiz-query-service/biz/webapi/grpc"
 	"ququiz/lintang/quiz-query-service/config"
 	"ququiz/lintang/quiz-query-service/pkg"
@@ -116,7 +117,6 @@ func main() {
 	}) // health probes
 	router.QuizRouter(h, quizService, questionService)
 
-	// insert data to mongodb pake faker
 
 	callback = append(callback, mongo.Close, rds.Close, rmq.Close)
 	h.Engine.OnShutdown = append(h.Engine.OnShutdown, callback...) /// graceful shutdown

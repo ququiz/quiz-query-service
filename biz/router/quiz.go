@@ -15,10 +15,11 @@ import (
 )
 
 type QuizService interface {
-	GetAll(ctx context.Context) ([]domain.BaseQuiz, error)
+	GetAll(ctx context.Context, limit uint64, offset uint64) ([]domain.BaseQuiz, error)
 	Get(ctx context.Context, quizID string) (domain.BaseQuiz, error)
-	GetQuizByCreatorID(ctx context.Context, creatorID string) ([]domain.BaseQuiz, error)
-	GetQuizHistory(ctx context.Context, participantID string) ([]domain.BaseQuizIsParticipant, error)
+	GetQuizByCreatorID(ctx context.Context, creatorID string, limit uint64, offset uint64) ([]domain.BaseQuiz, error)
+	GetQuizHistory(ctx context.Context, participantID string, limit uint64,
+		offset uint64) ([]domain.BaseQuizIsParticipant, error)
 }
 
 type QuestionService interface {
@@ -66,6 +67,11 @@ type ResponseError struct {
 	Message string `json:"message"`
 }
 
+type listQuizReq struct {
+	Limit  uint64 `query:"limit" vd:"($ > 5 && $ < 15) || $ == 0 ;msg:'limit harus lebih dari 5 dan kurang dari 15'"`
+	Offset uint64 `query:"offset" vd:"$ >= 0;msg:'offset harus lebih dari 0'"`
+}
+
 type listQuizResp struct {
 	ID          primitive.ObjectID   `json:"id"`
 	Name        string               `json:"name"`
@@ -79,8 +85,14 @@ type listQuizResp struct {
 }
 
 func (h *QuizHandler) GetAllQuiz(ctx context.Context, c *app.RequestContext) {
+	var req listQuizReq
+	err := c.BindAndValidate(&req)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, ResponseError{Message: err.Error()})
+		return
+	}
 
-	quizs, err := h.svc.GetAll(ctx)
+	quizs, err := h.svc.GetAll(ctx, req.Limit, req.Offset)
 	if err != nil {
 		c.JSON(getStatusCode(err), ResponseError{Message: err.Error()})
 		return
@@ -271,8 +283,14 @@ func (h *QuizHandler) UserAnswerAQuestion(ctx context.Context, c *app.RequestCon
 }
 
 func (h *QuizHandler) GetCreatedQuiz(ctx context.Context, c *app.RequestContext) {
+	var req listQuizReq
+	err := c.BindAndValidate(&req)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, ResponseError{Message: err.Error()})
+		return
+	}
 	userID, _ := c.Get("userID")
-	quizs, err := h.svc.GetQuizByCreatorID(ctx, userID.(string))
+	quizs, err := h.svc.GetQuizByCreatorID(ctx, userID.(string), req.Limit, req.Offset)
 	var resp []listQuizResp = []listQuizResp{}
 	for _, quiz := range quizs {
 		resp = append(resp, listQuizResp{
@@ -294,8 +312,14 @@ func (h *QuizHandler) GetCreatedQuiz(ctx context.Context, c *app.RequestContext)
 }
 
 func (h *QuizHandler) GetQuizHistory(ctx context.Context, c *app.RequestContext) {
+	var req listQuizReq
+	err := c.BindAndValidate(&req)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, ResponseError{Message: err.Error()})
+		return
+	}
 	userID, _ := c.Get("userID")
-	quizs, err := h.svc.GetQuizHistory(ctx, userID.(string))
+	quizs, err := h.svc.GetQuizHistory(ctx, userID.(string), req.Limit, req.Offset)
 	var resp []listQuizResp = []listQuizResp{}
 	for _, quiz := range quizs {
 		resp = append(resp, listQuizResp{

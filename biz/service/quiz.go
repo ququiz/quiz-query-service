@@ -9,11 +9,13 @@ import (
 )
 
 type QuizRepository interface {
-	GetAll(ctx context.Context) ([]domain.BaseQuiz, error)
+	GetAll(ctx context.Context, limit uint64, offset uint64) ([]domain.BaseQuiz, error)
 	IsUserQuizParticipant(ctx context.Context, quizID string, userID string) ([]domain.BaseQuizIsParticipant, error)
-	GetAllQuizByCreatorID(ctx context.Context, creatorID string) ([]domain.BaseQuiz, error)
+	// GetAllQuizByCreatorID(ctx context.Context, creatorID string) ([]domain.BaseQuiz, error)
+	GetAllQuizByCreatorID(ctx context.Context, creatorID string, limit uint64, offset uint64) ([]domain.BaseQuiz, error)
 	Get(ctx context.Context, quizID string) (domain.BaseQuiz, error)
-	GetQuizHistory(ctx context.Context, participantID string) ([]domain.BaseQuizIsParticipant, error)
+	// GetQuizHistory(ctx context.Context, participantID string) ([]domain.BaseQuizIsParticipant, error)
+	GetQuizHistory(ctx context.Context, participantID string, limit uint64, offset uint64) ([]domain.BaseQuizIsParticipant, error)
 }
 
 type AuthGRPCClient interface {
@@ -33,8 +35,8 @@ func NewQuizService(qRepo QuizRepository, a AuthGRPCClient) *QuizService {
 	}
 }
 
-func (s *QuizService) GetAll(ctx context.Context) ([]domain.BaseQuiz, error) {
-	quizs, err := s.quizRepo.GetAll(ctx)
+func (s *QuizService) GetAll(ctx context.Context, limit uint64, offset uint64) ([]domain.BaseQuiz, error) {
+	quizs, err := s.quizRepo.GetAll(ctx, limit, offset)
 	var userIDs []string
 	for i := 0; i < len(quizs); i++ {
 		userIDs = append(userIDs, quizs[i].CreatorID)
@@ -77,8 +79,8 @@ func (s *QuizService) Get(ctx context.Context, quizID string) (domain.BaseQuiz, 
 	return quiz, nil
 }
 
-func (s *QuizService) GetQuizByCreatorID(ctx context.Context, creatorID string) ([]domain.BaseQuiz, error) {
-	quizs, err := s.quizRepo.GetAllQuizByCreatorID(ctx, creatorID)
+func (s *QuizService) GetQuizByCreatorID(ctx context.Context, creatorID string, limit uint64, offset uint64) ([]domain.BaseQuiz, error) {
+	quizs, err := s.quizRepo.GetAllQuizByCreatorID(ctx, creatorID, limit, offset)
 	if err != nil {
 		zap.L().Error(" s.quizRepo.GetAllQuizByCreatorID (GetQuizByCreatorID ) (QuizService) ")
 		return []domain.BaseQuiz{}, err
@@ -109,8 +111,9 @@ func (s *QuizService) GetQuizByCreatorID(ctx context.Context, creatorID string) 
 	return quizs, nil
 }
 
-func (s *QuizService) GetQuizHistory(ctx context.Context, participantID string) ([]domain.BaseQuizIsParticipant, error) {
-	quizHistory, err := s.quizRepo.GetQuizHistory(ctx, participantID)
+func (s *QuizService) GetQuizHistory(ctx context.Context, participantID string, limit uint64, 
+			offset uint64 ) ([]domain.BaseQuizIsParticipant, error) {
+	quizHistory, err := s.quizRepo.GetQuizHistory(ctx, participantID, limit, offset)
 	if err != nil {
 		zap.L().Error(" s.quizRepo.GetQuizHistory (GetQuizHistory ) (QuizService) ")
 		return []domain.BaseQuizIsParticipant{}, err

@@ -37,15 +37,35 @@ func (r *QuizRepository) InsertQuizData(ctx context.Context, quizReqs []domain.B
 	return nil
 }
 
-func (r *QuizRepository) GetAll(ctx context.Context) ([]domain.BaseQuiz, error) {
+func (r *QuizRepository) GetAll(ctx context.Context, limit uint64, offset uint64) ([]domain.BaseQuiz, error) {
+
 	coll := r.db.Collection("base_quiz")
-	cursor, err := coll.Find(ctx, bson.D{})
-	if err != nil {
-		zap.L().Error("coll.Find() (GetALlQuiz) (QuizRepoistory)", zap.Error(err))
-		return []domain.BaseQuiz{}, err
-	}
+	// cursor, err := coll.Find(ctx, bson.D{})
+	// if err != nil {
+	// 	zap.L().Error("coll.Find() (GetALlQuiz) (QuizRepoistory)", zap.Error(err))
+	// 	return []domain.BaseQuiz{}, err
+	// }
 
 	var quizs []domain.BaseQuiz
+
+	// aggregate and paginate
+	skip := bson.D{{"$skip", offset}}
+	limitQuery := bson.D{{"$limit", limit}}
+
+	var cursor *mongo.Cursor
+	var err error
+	if limit != 0 {
+		cursor, err = coll.Aggregate(ctx, mongo.Pipeline{skip, limitQuery})
+	} else {
+		skip = bson.D{{"$skip", 0}}
+		limitQuery = bson.D{{"$limit", 15}}
+		cursor, err = coll.Aggregate(ctx, mongo.Pipeline{skip, limitQuery})
+	}
+
+	if err != nil {
+		zap.L().Error("coll.Aggregate() (GetALlQuiz) (QuizRepoistory)", zap.Error(err))
+		return []domain.BaseQuiz{}, err
+	}
 
 	// bawah gakbisa
 	if err := cursor.All(ctx, &quizs); err != nil {
@@ -113,15 +133,41 @@ func (r *QuizRepository) IsUserQuizParticipant(ctx context.Context, quizID strin
 	return participant, nil
 }
 
-func (r *QuizRepository) GetAllQuizByCreatorID(ctx context.Context, creatorID string) ([]domain.BaseQuiz, error) {
+func (r *QuizRepository) GetAllQuizByCreatorID(ctx context.Context, creatorID string, limit uint64, offset uint64) ([]domain.BaseQuiz, error) {
 	coll := r.db.Collection("base_quiz")
-	filterQuiz := bson.D{
+	// filterQuiz := bson.D{
 
-		{"creator_id", creatorID},
+	// {"creator_id", creatorID},
+	// }
+
+	// var quizs []domain.BaseQuiz
+	// cursor, err := coll.Find(ctx, filterQuiz)
+
+	// aggregate and pagination
+	var quizs []domain.BaseQuiz
+	filterQuiz := bson.D{
+		{"$match", bson.D{
+			{"creator_id", creatorID},
+		}},
+	}
+	skip := bson.D{{"$skip", offset}}
+	limitQuery := bson.D{{"$limit", limit}}
+
+	var cursor *mongo.Cursor
+	var err error
+	if limit != 0 {
+		cursor, err = coll.Aggregate(ctx, mongo.Pipeline{filterQuiz, skip, limitQuery})
+	} else {
+		skip = bson.D{{"$skip", 0}}
+		limitQuery = bson.D{{"$limit", 15}}
+		cursor, err = coll.Aggregate(ctx, mongo.Pipeline{filterQuiz, skip, limitQuery})
 	}
 
-	var quizs []domain.BaseQuiz
-	cursor, err := coll.Find(ctx, filterQuiz)
+	if err != nil {
+		zap.L().Error("coll.Aggregate() (GetALlQuiz) (QuizRepoistory)", zap.Error(err))
+		return []domain.BaseQuiz{}, err
+	}
+
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 
@@ -140,7 +186,7 @@ func (r *QuizRepository) GetAllQuizByCreatorID(ctx context.Context, creatorID st
 	return quizs, nil
 }
 
-func (r *QuizRepository) GetQuizHistory(ctx context.Context, participantID string) ([]domain.BaseQuizIsParticipant, error) {
+func (r *QuizRepository) GetQuizHistory(ctx context.Context, participantID string, limit uint64, offset uint64) ([]domain.BaseQuizIsParticipant, error) {
 	unwindParticipant := bson.D{
 		{"$unwind", bson.D{
 			{"path", "$participants"},
@@ -153,7 +199,20 @@ func (r *QuizRepository) GetQuizHistory(ctx context.Context, participantID strin
 	}
 
 	coll := r.db.Collection("base_quiz")
-	cursor, err := coll.Aggregate(ctx, mongo.Pipeline{unwindParticipant, filterParticipant})
+
+	skip := bson.D{{"$skip", offset}}
+	limitQuery := bson.D{{"$limit", limit}}
+
+	var cursor *mongo.Cursor
+	var err error
+	if limit != 0 {
+		cursor, err = coll.Aggregate(ctx, mongo.Pipeline{unwindParticipant, filterParticipant, skip, limitQuery})
+	} else {
+		skip = bson.D{{"$skip", 0}}
+		limitQuery = bson.D{{"$limit", 15}}
+		cursor, err = coll.Aggregate(ctx, mongo.Pipeline{unwindParticipant, filterParticipant, skip, limitQuery})
+	}
+
 	if err != nil {
 		zap.L().Error("coll.Aggregat (IsUserQuizParticipant) (QuizRepository)", zap.Error(err))
 		return []domain.BaseQuizIsParticipant{}, err
