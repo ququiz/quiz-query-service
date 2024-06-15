@@ -72,6 +72,10 @@ func (r *QuizRepository) GetAll(ctx context.Context, limit uint64, offset uint64
 		zap.L().Error("cursor.All()", zap.Error(err))
 		return []domain.BaseQuiz{}, err
 	}
+	if len(quizs) == 0 {
+		return []domain.BaseQuiz{}, domain.WrapErrorf(err, domain.ErrNotFound, fmt.Sprintf(`quiz not found`))
+
+	}
 
 	return quizs, nil
 }
@@ -183,6 +187,11 @@ func (r *QuizRepository) GetAllQuizByCreatorID(ctx context.Context, creatorID st
 		return []domain.BaseQuiz{}, err
 	}
 
+	if len(quizs) == 0 {
+		return []domain.BaseQuiz{}, domain.WrapErrorf(err, domain.ErrNotFound, fmt.Sprintf(`quiz not found`))
+
+	}
+
 	return quizs, nil
 }
 
@@ -223,6 +232,11 @@ func (r *QuizRepository) GetQuizHistory(ctx context.Context, participantID strin
 	if err := cursor.All(ctx, &quizs); err != nil {
 		zap.L().Error("cursor.ALl()(IsUserQuizParticipant) (QuizRepository) ", zap.Error(err))
 		return []domain.BaseQuizIsParticipant{}, err
+	}
+
+	if len(quizs) == 0 {
+		return []domain.BaseQuizIsParticipant{}, domain.WrapErrorf(err, domain.ErrNotFound, fmt.Sprintf(`quiz not found`))
+
 	}
 	return quizs, nil
 }

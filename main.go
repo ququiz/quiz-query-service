@@ -21,6 +21,7 @@ import (
 
 	"github.com/bytedance/gopkg/util/gopool"
 	"github.com/cloudwego/hertz/pkg/app"
+	"github.com/hertz-contrib/gzip"
 	grpcClient "google.golang.org/grpc"
 
 	"github.com/cloudwego/hertz/pkg/app/server"
@@ -51,6 +52,7 @@ func main() {
 		server.WithHostPorts(fmt.Sprintf(`0.0.0.0:%s`, cfg.HTTP.Port)),
 		server.WithExitWaitTime(4*time.Second),
 	)
+	h.Use(gzip.Gzip(gzip.DefaultCompression)) // gzip compress
 
 	h.Use(accesslog.New(accesslog.WithLogConditionFunc(func(ctx context.Context, c *app.RequestContext) bool {
 		if c.FullPath() == "/healthz" {
