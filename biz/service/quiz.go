@@ -37,10 +37,14 @@ func NewQuizService(qRepo QuizRepository, a AuthGRPCClient) *QuizService {
 
 func (s *QuizService) GetAll(ctx context.Context, limit uint64, offset uint64) ([]domain.BaseQuiz, error) {
 	quizs, err := s.quizRepo.GetAll(ctx, limit, offset)
+	if err != nil {
+		return []domain.BaseQuiz{}, err
+	}
 	var userIDs []string
 	for i := 0; i < len(quizs); i++ {
 		userIDs = append(userIDs, quizs[i].CreatorID)
 	}
+
 	users, err := s.authClient.GetUsersByIds(ctx, userIDs)
 	if err != nil {
 		return []domain.BaseQuiz{}, err
@@ -111,8 +115,8 @@ func (s *QuizService) GetQuizByCreatorID(ctx context.Context, creatorID string, 
 	return quizs, nil
 }
 
-func (s *QuizService) GetQuizHistory(ctx context.Context, participantID string, limit uint64, 
-			offset uint64 ) ([]domain.BaseQuizIsParticipant, error) {
+func (s *QuizService) GetQuizHistory(ctx context.Context, participantID string, limit uint64,
+	offset uint64) ([]domain.BaseQuizIsParticipant, error) {
 	quizHistory, err := s.quizRepo.GetQuizHistory(ctx, participantID, limit, offset)
 	if err != nil {
 		zap.L().Error(" s.quizRepo.GetQuizHistory (GetQuizHistory ) (QuizService) ")
